@@ -24,10 +24,14 @@ export function ApiSection() {
 
     const ctx = gsap.context(() => {
       gsap.from(card, {
-        y: 60,
+        y: 80,
         opacity: 0,
+        scale: 0.94,
+        rotateX: 10,
+        rotateY: -10,
+        transformOrigin: "center bottom",
         ease: "power3.out",
-        duration: 0.8,
+        duration: 1,
         scrollTrigger: {
           trigger: section,
           start: "top 80%",
@@ -45,8 +49,11 @@ export function ApiSection() {
       id="api"
       className="relative mx-auto w-full max-w-[1100px] px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
     >
-      <div ref={cardRef}>
-        <PanelShell className="p-6 sm:p-8">
+      <div ref={cardRef} style={{ perspective: "1000px" }}>
+        <PanelShell
+          energyBorder
+          className="p-6 backdrop-blur-sm sm:p-8"
+        >
           <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-slate-500">
             [ API ]
           </p>

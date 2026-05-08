@@ -6,6 +6,7 @@ import {
   isRecommendationsApiConfigured,
   runRecommendationsQuery,
 } from "@/api/recommendations";
+import { PanelShell } from "@/components/ui/PanelShell";
 import { PixelLabel } from "@/components/ui/PixelLabel";
 import {
   EXAMPLE_MARKET_ID,
@@ -65,181 +66,212 @@ export function QueryConsole() {
     void handleSubmit();
   }
 
+  const ResultsPanel = () => (
+    <div className="flex flex-col h-full" aria-label="Results" role="region" aria-live="polite">
+      <PixelLabel>Output</PixelLabel>
+      <div className="mt-4 flex-1 overflow-auto min-h-0">
+        {!hasSearched ? (
+          <div className="flex h-full flex-col items-center justify-center text-center">
+            <p className="text-sm text-slate-500">
+              Run a market query to preview recommended sources.
+            </p>
+          </div>
+        ) : isLoading ? (
+          <div className="flex h-full flex-col items-center justify-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet-400/30 border-t-violet-400" />
+            <p className="mt-3 text-sm text-slate-400">Searching…</p>
+          </div>
+        ) : response.state === "error" ? (
+          <p className="text-sm text-rose-300">{response.errorMessage ?? "Something went wrong."}</p>
+        ) : response.state === "no-results" ? (
+          <p className="text-sm text-slate-400">No sources found. Try a richer query.</p>
+        ) : (
+          <div className="space-y-3">
+            {response.results.map((item) => (
+              <article
+                key={item.url}
+                className="result-card rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all duration-300"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="font-medium text-white">{item.label}</h3>
+                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 font-mono text-[11px] text-violet-100">
+                    {formatScore(item.score)}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-slate-400">{item.reason}</p>
+                <a
+                  className="mt-3 inline-block cursor-pointer text-sm text-sky-300/90 underline-offset-2 transition-colors duration-200 hover:text-sky-200 hover:underline"
+                  href={item.url}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {item.domain}
+                </a>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <section
-      className={consoleSurfaceClass}
+      className="grid grid-cols-1 lg:grid-cols-[minmax(0,40%)_1fr] gap-6 h-full"
       aria-labelledby={`${regionId}-title`}
       onKeyDown={onFormKeyDown}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-[28px] bg-[radial-gradient(120%_80%_at_50%_-20%,rgba(139,92,246,0.14),transparent_55%)]" />
-      <div
-        className="relative z-10 flex h-full flex-col"
-        role="region"
-        aria-busy={isLoading}
-        aria-live="polite"
+      {/* Left panel — Query Input */}
+      <PanelShell
+        energyBorder
+        className="dashboard-panel h-full p-6 backdrop-blur-2xl sm:p-8"
       >
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <PixelLabel>
-            <span id={`${regionId}-title`}>Query Console</span>
-          </PixelLabel>
-          <PixelLabel>
-            {apiReady ? "API ready" : "API not configured"} ·{" "}
-            {mode === "market-id" ? "ID mode" : "Custom mode"}
-          </PixelLabel>
-        </div>
-
-        <div
-          className="flex flex-wrap gap-2 rounded-full border border-white/10 bg-black/25 p-1"
-          role="group"
-          aria-label="Query mode"
-        >
-          <button
-            type="button"
-            onClick={() => setMode("market-id")}
-            className={`${btnBase} px-4 py-2 ${
-              mode === "market-id"
-                ? "bg-white text-slate-950 shadow-sm shadow-black/20"
-                : "text-slate-200 hover:bg-white/10"
-            }`}
-          >
-            Use Market ID
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("custom")}
-            className={`${btnBase} px-4 py-2 ${
-              mode === "custom"
-                ? "bg-white text-slate-950 shadow-sm shadow-black/20"
-                : "text-slate-200 hover:bg-white/10"
-            }`}
-          >
-            Use Custom Market
-          </button>
-        </div>
-
-        <div className="mt-5 flex min-h-0 flex-1 flex-col space-y-4">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Example presets">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("market-id");
-                setMarketId(EXAMPLE_MARKET_ID);
-              }}
-              className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
-            >
-              Example Market ID
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("custom");
-                setMarketQuestion(EXAMPLE_MARKET_QUESTION);
-              }}
-              className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
-            >
-              Example Custom Market
-            </button>
+        <div className="relative z-10 flex h-full flex-col">
+          <div className="mb-5 flex flex-wrap items-center justify-start gap-3">
+            <PixelLabel>
+              <span id={`${regionId}-title`}>Query Console</span>
+            </PixelLabel>
           </div>
 
-          {mode === "market-id" ? (
-            <label className="block text-sm text-slate-300">
-              <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                Market ID
-              </span>
-              <input
-                aria-label="Market ID"
-                value={marketId}
-                onChange={(event) => setMarketId(event.target.value)}
-                className={inputGlowClass}
-              />
-            </label>
-          ) : (
-            <label className="block min-h-0 flex-1 text-sm text-slate-300">
-              <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                Market Question
-              </span>
-              <textarea
-                aria-label="Market Question"
-                rows={5}
-                value={marketQuestion}
-                onChange={(event) => setMarketQuestion(event.target.value)}
-                className={`${inputGlowClass} min-h-[7.5rem] resize-y`}
-              />
-              <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                Resolution hint · {shortenUrl(EXAMPLE_RESOLUTION_SOURCE)}
-              </p>
-            </label>
-          )}
-
-          {!apiReady ? (
-            <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-amber-100/90">
-              Set{" "}
-              <span className="font-mono text-xs">NEXT_PUBLIC_API_BASE_URL</span> in{" "}
-              <span className="font-mono text-xs">frontend/.env.local</span> (see{" "}
-              <span className="font-mono text-xs">.env.example</span>) so the console can call the
-              recommendation API.
-            </p>
-          ) : null}
-
-          <button
-            type="button"
-            disabled={!canSubmit}
-            onClick={() => void handleSubmit()}
-            title={
-              !apiReady
-                ? "Configure NEXT_PUBLIC_API_BASE_URL first"
-                : !hasInput
-                  ? "Enter a market ID or question first"
-                  : undefined
-            }
-            className={`w-full rounded-full bg-gradient-to-r from-sky-400 to-violet-500 px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-[0_14px_48px_rgba(56,189,248,0.35),0_0_40px_rgba(139,92,246,0.2)] transition duration-200 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:brightness-100 sm:w-auto ${btnBase}`}
+          {/* Mode switcher + Examples in one compact row */}
+          <div className="mt-4 flex flex-wrap items-center gap-2"
           >
-            {isLoading ? "Searching…" : "Find Sources"}
-          </button>
-        </div>
-
-        <div
-          className="relative z-10 mt-6 min-h-[5rem] rounded-2xl border border-white/10 bg-black/30 p-4"
-          aria-label="Results"
-        >
-          {!hasSearched ? (
-            <p className="text-sm text-slate-400">
-              Run a market query to preview recommended sources.
-            </p>
-          ) : isLoading ? (
-            <p className="text-sm text-slate-400">Searching…</p>
-          ) : response.state === "error" ? (
-            <p className="text-sm text-rose-300">{response.errorMessage ?? "Something went wrong."}</p>
-          ) : response.state === "no-results" ? (
-            <p className="text-sm text-slate-400">No sources found. Try a richer query.</p>
-          ) : (
-            <div className="space-y-3">
-              {response.results.map((item) => (
-                <article
-                  key={item.url}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-colors duration-200 hover:border-violet-400/25"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <h3 className="font-medium text-white">{item.label}</h3>
-                    <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 font-mono text-[11px] text-violet-100">
-                      {formatScore(item.score)}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-slate-400">{item.reason}</p>
-                  <a
-                    className="mt-3 inline-block cursor-pointer text-sm text-sky-300/90 underline-offset-2 transition-colors duration-200 hover:text-sky-200 hover:underline"
-                    href={item.url}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {item.domain}
-                  </a>
-                </article>
-              ))}
+            <div
+              className="flex flex-wrap gap-2 rounded-full border border-white/10 bg-black/25 p-1"
+              role="group"
+              aria-label="Query mode"
+            >
+              <button
+                type="button"
+                onClick={() => setMode("market-id")}
+                className={`${btnBase} px-4 py-2 ${
+                  mode === "market-id"
+                    ? "bg-white text-slate-950 shadow-sm shadow-black/20"
+                    : "text-slate-200 hover:bg-white/10"
+                }`}
+              >
+                Use Market ID
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("custom")}
+                className={`${btnBase} px-4 py-2 ${
+                  mode === "custom"
+                    ? "bg-white text-slate-950 shadow-sm shadow-black/20"
+                    : "text-slate-200 hover:bg-white/10"
+                }`}
+              >
+                Use Custom Market
+              </button>
             </div>
-          )}
+
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Example presets">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("market-id");
+                  setMarketId(EXAMPLE_MARKET_ID);
+                }}
+                className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
+              >
+                Example1
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("custom");
+                  setMarketQuestion(EXAMPLE_MARKET_QUESTION);
+                }}
+                className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
+              >
+                Example2
+              </button>
+            </div>
+          </div>
+
+          {/* Input area */}
+          <div className="mt-4 flex min-h-0 flex-1 flex-col"
+          >
+            {mode === "market-id" ? (
+              <label className="block text-sm text-slate-300"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400"
+                >
+                  Market ID
+                </span>
+                <input
+                  aria-label="Market ID"
+                  value={marketId}
+                  onChange={(event) => setMarketId(event.target.value)}
+                  className={inputGlowClass}
+                />
+              </label>
+            ) : (
+              <label className="flex min-h-0 flex-1 flex-col text-sm text-slate-300"
+              >
+                <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400"
+                >
+                  Market Question
+                </span>
+                <textarea
+                  aria-label="Market Question"
+                  value={marketQuestion}
+                  onChange={(event) => setMarketQuestion(event.target.value)}
+                  className={`${inputGlowClass} min-h-0 flex-1 resize-y`}
+                />
+                <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-slate-500"
+                >
+                  Resolution hint · {shortenUrl(EXAMPLE_RESOLUTION_SOURCE)}
+                </p>
+              </label>
+            )}
+          </div>
+
+          {/* Bottom action area */}
+          <div className="mt-4 space-y-3"
+          >
+            {!apiReady ? (
+              <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-amber-100/90"
+              >
+                Set{" "}
+                <span className="font-mono text-xs"
+                >NEXT_PUBLIC_API_BASE_URL</span>{" "}
+                in{" "}
+                <span className="font-mono text-xs"
+                >frontend/.env.local</span>{" "}
+                (see{" "}
+                <span className="font-mono text-xs"
+                >.env.example</span>) so the console can call the recommendation
+                API.
+              </p>
+            ) : null}
+
+            <button
+              type="button"
+              disabled={!canSubmit}
+              onClick={() => void handleSubmit()}
+              title={
+                !apiReady
+                  ? "Configure NEXT_PUBLIC_API_BASE_URL first"
+                  : !hasInput
+                    ? "Enter a market ID or question first"
+                    : undefined
+              }
+              className={`w-full rounded-full bg-gradient-to-r from-sky-400 to-violet-500 px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-[0_14px_48px_rgba(56,189,248,0.35),0_0_40px_rgba(139,92,246,0.2)] transition duration-200 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:brightness-100 sm:w-auto ${btnBase}`}
+            >
+              {isLoading ? "Searching…" : "Find Sources"}
+            </button>
+          </div>
         </div>
-      </div>
+      </PanelShell>
+
+      {/* Right panel — Results */}
+      <PanelShell
+        energyBorder
+        className="dashboard-panel h-full p-6 backdrop-blur-2xl sm:p-8"
+      >
+        <ResultsPanel />
+      </PanelShell>
     </section>
   );
 }

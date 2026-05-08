@@ -43,15 +43,22 @@ export function FeatureSection() {
 
     const ctx = gsap.context(() => {
       gsap.from(cards, {
-        y: 80,
+        y: 120,
         opacity: 0,
-        scale: 0.96,
+        scale: 0.88,
+        rotateX: 18,
+        rotateY: (i) => (i % 2 === 0 ? -28 : 28),
+        rotateZ: (i) => (i % 2 === 0 ? -6 : 6),
+        transformOrigin: "center bottom",
         ease: "power3.out",
-        duration: 0.8,
-        stagger: 0.12,
+        duration: 1.1,
+        stagger: {
+          each: 0.14,
+          from: "start",
+        },
         scrollTrigger: {
           trigger: section,
-          start: "top 80%",
+          start: "top 85%",
           toggleActions: "play none none reverse",
         },
       });
@@ -75,7 +82,7 @@ export function FeatureSection() {
         </h2>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2" style={{ perspective: "1000px" }}>
         {FEATURES.map((f, i) => (
           <div
             key={f.title}
@@ -83,7 +90,10 @@ export function FeatureSection() {
               if (el) cardsRef.current[i] = el;
             }}
           >
-            <PanelShell className="h-full p-6 sm:p-8">
+            <PanelShell
+              energyBorder
+              className="h-full p-6 backdrop-blur-sm sm:p-8"
+            >
               <div className="flex h-full flex-col">
                 <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-slate-500">
                   0{i + 1}

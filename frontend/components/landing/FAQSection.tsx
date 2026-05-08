@@ -61,14 +61,22 @@ export function FAQSection() {
 
     const ctx = gsap.context(() => {
       gsap.from(items, {
-        y: 60,
+        y: 120,
         opacity: 0,
+        scale: 0.88,
+        rotateX: 18,
+        rotateY: (i) => (i % 2 === 0 ? -28 : 28),
+        rotateZ: (i) => (i % 2 === 0 ? -6 : 6),
+        transformOrigin: "center bottom",
         ease: "power3.out",
-        duration: 0.7,
-        stagger: 0.1,
+        duration: 1.1,
+        stagger: {
+          each: 0.12,
+          from: "start",
+        },
         scrollTrigger: {
           trigger: section,
-          start: "top 80%",
+          start: "top 85%",
           toggleActions: "play none none reverse",
         },
       });
@@ -92,7 +100,7 @@ export function FAQSection() {
         </h2>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2" style={{ perspective: "1000px" }}>
         {FAQS.map((faq, i) => (
           <div
             key={faq.q}
@@ -100,7 +108,10 @@ export function FAQSection() {
               if (el) itemsRef.current[i] = el;
             }}
           >
-            <PanelShell className="h-full p-6">
+            <PanelShell
+              energyBorder
+              className="h-full p-6 backdrop-blur-sm"
+            >
               <h3 className="text-lg font-medium text-white">{faq.q}</h3>
               <p className="mt-3 text-sm leading-7 text-slate-300/80">{faq.a}</p>
             </PanelShell>

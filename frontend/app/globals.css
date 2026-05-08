@@ -104,3 +104,178 @@ body::after {
 .animated-text.focused {
   color: rgb(226 232 240 / 0.6);
 }
+
+/* ── Energy-border spotlight (conic-gradient ring) ── */
+.energy-border {
+  border-color: transparent;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.group:hover.energy-border {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(34, 211, 238, 0.06), 0 0 0 1px rgba(34, 211, 238, 0.12);
+}
+
+.energy-border .energy-core {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 40deg,
+    rgba(200,200,200,0.45) 70deg,
+    rgba(255,255,255,0.9) 95deg,
+    rgba(255,255,255,1) 110deg,
+    rgba(255,255,255,0.9) 125deg,
+    rgba(200,200,200,0.45) 150deg,
+    transparent 180deg,
+    transparent 360deg
+  );
+  transform: rotate(0deg);
+  animation: energy-spin 1.6s linear infinite;
+  opacity: 0.55;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.group:hover .energy-core {
+  opacity: 1;
+}
+
+.energy-border .energy-mask {
+  position: absolute;
+  inset: 3px;
+  border-radius: 27px;
+  background: linear-gradient(165deg, #1a1a1a 0%, #0a0a0a 60%, #000000 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Sci-fi corner marks */
+.energy-border .corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(255, 255, 255, 0.18);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.corner-tl {
+  top: 14px;
+  left: 14px;
+  border-top: 1.5px solid;
+  border-left: 1.5px solid;
+  border-top-left-radius: 3px;
+}
+
+.corner-tr {
+  top: 14px;
+  right: 14px;
+  border-top: 1.5px solid;
+  border-right: 1.5px solid;
+  border-top-right-radius: 3px;
+}
+
+.corner-bl {
+  bottom: 14px;
+  left: 14px;
+  border-bottom: 1.5px solid;
+  border-left: 1.5px solid;
+  border-bottom-left-radius: 3px;
+}
+
+.corner-br {
+  bottom: 14px;
+  right: 14px;
+  border-bottom: 1.5px solid;
+  border-right: 1.5px solid;
+  border-bottom-right-radius: 3px;
+}
+
+.group:hover .corner {
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+}
+
+@keyframes energy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Dashboard panel energy glow ── */
+.dashboard-panel {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.dashboard-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(139, 92, 246, 0.1), 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+
+.dashboard-panel .energy-core {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 60deg,
+    rgba(56, 189, 248, 0.3) 80deg,
+    rgba(139, 92, 246, 0.65) 100deg,
+    rgba(230, 230, 255, 0.9) 110deg,
+    rgba(139, 92, 246, 0.65) 120deg,
+    rgba(56, 189, 248, 0.3) 140deg,
+    transparent 160deg,
+    transparent 360deg
+  );
+  transform: rotate(0deg);
+  animation: energy-spin 2s linear infinite;
+  opacity: 0.06;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: screen;
+}
+
+.dashboard-panel:hover .energy-core {
+  opacity: 0.28;
+}
+
+.dashboard-panel .corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(255, 255, 255, 0.1);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.dashboard-panel:hover .corner {
+  border-color: rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+}
+
+/* ── Dashboard result cards ── */
+.result-card {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.result-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.08);
+}
+
+/* Reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .energy-border .energy-core,
+  .dashboard-panel .energy-core {
+    animation: none;
+  }
+}

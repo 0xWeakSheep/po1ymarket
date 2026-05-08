@@ -23,13 +23,13 @@ export function FadeUpPanel({
   return (
     <motion.div
       className={className}
-      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 40, scale: 0.96, rotateX: 10 }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
       transition={
         reduceMotion
           ? { duration: 0 }
           : {
-              duration: 0.48,
+              duration: 0.7,
               delay,
               ease,
             }
