@@ -6,7 +6,7 @@ import {
   isRecommendationsApiConfigured,
   runRecommendationsQuery,
 } from "@/api/recommendations";
-import { PixelLabel } from "@/components/immersive/PixelLabel";
+import { PixelLabel } from "@/components/ui/PixelLabel";
 import {
   EXAMPLE_MARKET_ID,
   EXAMPLE_MARKET_QUESTION,

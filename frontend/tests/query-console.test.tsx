@@ -2,8 +2,9 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import DashboardPage from "@/app/dashboard/page";
 import HomePage from "@/app/page";
-import { QueryConsole } from "@/components/search/QueryConsole";
+import { QueryConsole } from "@/components/dashboard/QueryConsole";
 
 describe("QueryConsole", () => {
   beforeEach(() => {
@@ -80,7 +81,7 @@ describe("QueryConsole", () => {
 });
 
 describe("HomePage", () => {
-  it("renders overview, console anchor, API reference, and FAQ", () => {
+  it("renders hero, workbench link to dashboard, and FAQ", () => {
     render(<HomePage />);
 
     const main = screen.getByRole("main");
@@ -92,6 +93,24 @@ describe("HomePage", () => {
         name: /find signal before the market moves/i,
       }),
     ).toBeInTheDocument();
+
+    expect(within(main).getByRole("heading", { name: /faq/i })).toBeInTheDocument();
+
+    const workbench = within(main).getByRole("link", { name: /^workbench$/i });
+    expect(workbench).toHaveAttribute("href", "/dashboard");
+
+    expect(document.getElementById("intro")).not.toBeNull();
+    expect(document.getElementById("faq")).not.toBeNull();
+  });
+});
+
+describe("DashboardPage", () => {
+  it("renders workbench overview, console, and API reference", () => {
+    render(<DashboardPage />);
+
+    const main = screen.getByRole("main");
+    expect(within(main).getByRole("navigation")).toBeInTheDocument();
+
     expect(
       within(main).getByRole("heading", {
         name: /^how it works$/i,
@@ -102,7 +121,6 @@ describe("HomePage", () => {
         name: /api reference/i,
       }),
     ).toBeInTheDocument();
-    expect(within(main).getByRole("heading", { name: /faq/i })).toBeInTheDocument();
 
     expect(document.getElementById("intro")).not.toBeNull();
     expect(document.getElementById("console")).not.toBeNull();

@@ -1,7 +1,7 @@
-import { FadeUpPanel } from "@/components/immersive/FadeUpPanel";
-import { PanelShell } from "@/components/immersive/PanelShell";
-import { PixelLabel } from "@/components/immersive/PixelLabel";
-import { QueryConsole } from "@/components/search/QueryConsole";
+import { FadeUpPanel } from "@/components/ui/FadeUpPanel";
+import { PanelShell } from "@/components/ui/PanelShell";
+import { PixelLabel } from "@/components/ui/PixelLabel";
+import { QueryConsole } from "@/components/dashboard/QueryConsole";
 
 const steps = [
   "Choose market ID or write a custom market question.",

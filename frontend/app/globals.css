@@ -13,10 +13,7 @@
 }
 
 body {
-  background:
-    radial-gradient(circle at 15% 20%, rgba(91, 108, 255, 0.22), transparent 28%),
-    radial-gradient(circle at 80% 18%, rgba(139, 92, 246, 0.22), transparent 26%),
-    linear-gradient(180deg, #07080d 0%, #05060a 100%);
+  background: #05060a;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -26,9 +23,84 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.35;
+    radial-gradient(ellipse at 50% 0%, rgba(91, 108, 255, 0.07), transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(139, 92, 246, 0.05), transparent 55%);
   pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Dual-wave marquee — duplicated track, move 50% for seamless loop (Codrops-style bands). */
+@keyframes geek-marquee-l {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes geek-marquee-r {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Binary wave side columns — vertical scroll with horizontal sine sway */
+@keyframes binary-scroll-up {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes binary-scroll-down {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes binary-sway {
+  0% {
+    transform: translateX(-3px);
+  }
+  100% {
+    transform: translateX(3px);
+  }
+}
+
+/* Binary wave bands — horizontal scroll with per-character sine offset */
+@keyframes binary-wave-scroll-l {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes binary-wave-scroll-r {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* DualWaveBackground focused text highlight */
+.animated-text.focused {
+  color: rgb(226 232 240 / 0.6);
 }
