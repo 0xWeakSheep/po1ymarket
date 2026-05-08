@@ -59,7 +59,7 @@ export function DualWaveBackground() {
         const flash: FlashItem = { index, side, intensity, color };
         setFlashes((prev) => [...prev.slice(-8), flash]);
 
-        const duration = intensity > 0.7 ? 1200 : intensity > 0.4 ? 900 : 650;
+        const duration = intensity > 0.7 ? 1600 : intensity > 0.4 ? 1200 : 900;
         const removeTimer = setTimeout(() => {
           setFlashes((prev) => prev.filter((f) => f !== flash));
         }, duration + 80);
@@ -116,10 +116,10 @@ export function DualWaveBackground() {
                   ? {
                       animationDuration:
                         flash.intensity > 0.7
-                          ? "350ms"
+                          ? "600ms"
                           : flash.intensity > 0.4
-                            ? "250ms"
-                            : "180ms",
+                            ? "450ms"
+                            : "320ms",
                     }
                   : undefined
               }
@@ -147,10 +147,10 @@ export function DualWaveBackground() {
                   ? {
                       animationDuration:
                         flash.intensity > 0.7
-                          ? "350ms"
+                          ? "600ms"
                           : flash.intensity > 0.4
-                            ? "250ms"
-                            : "180ms",
+                            ? "450ms"
+                            : "320ms",
                     }
                   : undefined
               }
