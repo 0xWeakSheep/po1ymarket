@@ -1,8 +1,3 @@
-"use client";
-
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLayoutEffect, useRef } from "react";
 import { PanelShell } from "@/components/ui/PanelShell";
 
 const FEATURES = [
@@ -20,52 +15,9 @@ const FEATURES = [
   },
 ];
 
-function getPrefersReducedMotion(): boolean {
-  if (typeof window === "undefined" || !window.matchMedia) return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export function FeatureSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const cardsRef = useRef<HTMLDivElement[]>([]);
-
-  useLayoutEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    if (getPrefersReducedMotion()) return;
-
-    const section = sectionRef.current;
-    const cards = cardsRef.current.filter(Boolean);
-    if (!section || cards.length === 0) return;
-
-    const ctx = gsap.context(() => {
-      gsap.from(cards, {
-        y: 120,
-        opacity: 0,
-        scale: 0.88,
-        rotateX: 18,
-        rotateY: (i) => (i % 2 === 0 ? -28 : 28),
-        rotateZ: (i) => (i % 2 === 0 ? -6 : 6),
-        transformOrigin: "center bottom",
-        ease: "power3.out",
-        duration: 1.1,
-        stagger: {
-          each: 0.14,
-          from: "start",
-        },
-        scrollTrigger: {
-          trigger: section,
-          start: "top 85%",
-          toggleActions: "play none none reverse",
-        },
-      });
-    }, section);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
       id="features"
       className="relative mx-auto w-full max-w-[900px] px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
     >
@@ -78,14 +30,9 @@ export function FeatureSection() {
         </h2>
       </div>
 
-      <div className="grid gap-5" style={{ perspective: "1000px" }}>
+      <div className="grid gap-5">
         {FEATURES.map((f, i) => (
-          <div
-            key={f.title}
-            ref={(el) => {
-              if (el) cardsRef.current[i] = el;
-            }}
-          >
+          <div key={f.title}>
             <PanelShell
               className="h-full border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-sm sm:p-8"
             >

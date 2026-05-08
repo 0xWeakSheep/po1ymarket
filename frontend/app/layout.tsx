@@ -27,7 +27,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <div className="scanlines" aria-hidden="true" />
+        <div className="noise-overlay" aria-hidden="true" />
+        <div className="mechanical-frame" aria-hidden="true" />
+        {children}
+      </body>
     </html>
   );
 }

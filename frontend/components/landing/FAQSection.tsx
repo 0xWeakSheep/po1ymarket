@@ -1,9 +1,4 @@
-"use client";
-
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
-import { useLayoutEffect, useRef } from "react";
 import { PanelShell } from "@/components/ui/PanelShell";
 
 const FAQS = [
@@ -31,52 +26,9 @@ const FAQS = [
   },
 ];
 
-function getPrefersReducedMotion(): boolean {
-  if (typeof window === "undefined" || !window.matchMedia) return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export function FAQSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const itemsRef = useRef<HTMLDivElement[]>([]);
-
-  useLayoutEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    if (getPrefersReducedMotion()) return;
-
-    const section = sectionRef.current;
-    const items = itemsRef.current.filter(Boolean);
-    if (!section || items.length === 0) return;
-
-    const ctx = gsap.context(() => {
-      gsap.from(items, {
-        y: 120,
-        opacity: 0,
-        scale: 0.88,
-        rotateX: 18,
-        rotateY: (i) => (i % 2 === 0 ? -28 : 28),
-        rotateZ: (i) => (i % 2 === 0 ? -6 : 6),
-        transformOrigin: "center bottom",
-        ease: "power3.out",
-        duration: 1.1,
-        stagger: {
-          each: 0.12,
-          from: "start",
-        },
-        scrollTrigger: {
-          trigger: section,
-          start: "top 85%",
-          toggleActions: "play none none reverse",
-        },
-      });
-    }, section);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <section
-      ref={sectionRef}
       id="faq"
       className="relative mx-auto w-full max-w-[900px] px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
     >
@@ -89,14 +41,9 @@ export function FAQSection() {
         </h2>
       </div>
 
-      <div className="grid gap-4" style={{ perspective: "1000px" }}>
-        {FAQS.map((faq, i) => (
-          <div
-            key={faq.q}
-            ref={(el) => {
-              if (el) itemsRef.current[i] = el;
-            }}
-          >
+      <div className="grid gap-4">
+        {FAQS.map((faq) => (
+          <div key={faq.q}>
             <PanelShell
               className="h-full border-white/[0.06] bg-white/[0.02] p-6 backdrop-blur-sm"
             >
