@@ -18,6 +18,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ── Global background layers ── */
 body::before {
   content: "";
   position: fixed;
@@ -40,64 +41,164 @@ body::after {
   pointer-events: none;
 }
 
-/* Dual-wave marquee — duplicated track, move 50% for seamless loop (Codrops-style bands). */
+/* ── Ambient floating orbs ── */
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.ambient-orb-1 {
+  width: 400px;
+  height: 400px;
+  top: 10%;
+  left: -5%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.4), transparent 70%);
+  animation: orb-float-1 20s ease-in-out infinite;
+}
+
+.ambient-orb-2 {
+  width: 350px;
+  height: 350px;
+  top: 40%;
+  right: -8%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.35), transparent 70%);
+  animation: orb-float-2 25s ease-in-out infinite;
+}
+
+.ambient-orb-3 {
+  width: 300px;
+  height: 300px;
+  bottom: 20%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.25), transparent 70%);
+  animation: orb-float-3 18s ease-in-out infinite;
+}
+
+@keyframes orb-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, -40px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.95); }
+}
+
+@keyframes orb-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-50px, 50px) scale(1.05); }
+  66% { transform: translate(40px, -30px) scale(0.9); }
+}
+
+@keyframes orb-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, -50px) scale(1.08); }
+}
+
+/* ── Text shimmer sweep effect ── */
+.text-shimmer {
+  position: relative;
+  display: inline-block;
+}
+
+.text-shimmer::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-sweep 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer-sweep {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+/* ── Text gradient shift ── */
+.text-gradient-shift {
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #e2e8f0 25%,
+    #22d3ee 50%,
+    #a78bfa 75%,
+    #ffffff 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ── Button glow ── */
+.btn-glow {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(16, 185, 129, 0.2) 0%,
+    transparent 70%
+  );
+}
+
+/* ── Scroll indicator ── */
+.scroll-cue {
+  opacity: 0.6;
+  animation: scroll-cue-fade 3s ease-in-out infinite;
+}
+
+@keyframes scroll-cue-fade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes scroll-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+.animate-scroll-line {
+  animation: scroll-line 2s ease-in-out infinite;
+}
+
+/* Dual-wave marquee */
 @keyframes geek-marquee-l {
-  to {
-    transform: translateX(-50%);
-  }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes geek-marquee-r {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
 }
 
-/* Binary wave side columns — vertical scroll with horizontal sine sway */
+/* Binary wave side columns */
 @keyframes binary-scroll-up {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-50%);
-  }
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 
 @keyframes binary-scroll-down {
-  0% {
-    transform: translateY(-50%);
-  }
-  100% {
-    transform: translateY(0);
-  }
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
 }
 
 @keyframes binary-sway {
-  0% {
-    transform: translateX(-3px);
-  }
-  100% {
-    transform: translateX(3px);
-  }
-}
-
-/* Binary wave bands — horizontal scroll with per-character sine offset */
-@keyframes binary-wave-scroll-l {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes binary-wave-scroll-r {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  0% { transform: translateX(-3px); }
+  100% { transform: translateX(3px); }
 }
 
 /* DualWaveBackground focused text highlight */
@@ -105,7 +206,7 @@ body::after {
   color: rgb(226 232 240 / 0.6);
 }
 
-/* ── Energy-border spotlight (conic-gradient ring) ── */
+/* ── Energy-border spotlight with color cycling ── */
 .energy-border {
   border-color: transparent;
   transition: transform 0.35s ease, box-shadow 0.35s ease;
@@ -113,7 +214,9 @@ body::after {
 
 .group:hover.energy-border {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(34, 211, 238, 0.06), 0 0 0 1px rgba(34, 211, 238, 0.12);
+  box-shadow:
+    0 12px 40px rgba(34, 211, 238, 0.06),
+    0 0 0 1px rgba(34, 211, 238, 0.12);
 }
 
 .energy-border .energy-core {
@@ -121,20 +224,19 @@ body::after {
   inset: 0;
   border-radius: inherit;
   background: conic-gradient(
-    from 0deg,
+    from var(--energy-angle, 0deg),
     transparent 0deg,
     transparent 40deg,
-    rgba(200,200,200,0.45) 70deg,
-    rgba(255,255,255,0.9) 95deg,
-    rgba(255,255,255,1) 110deg,
-    rgba(255,255,255,0.9) 125deg,
-    rgba(200,200,200,0.45) 150deg,
-    transparent 180deg,
+    rgba(34, 211, 238, 0.5) 65deg,
+    rgba(139, 92, 246, 0.7) 85deg,
+    rgba(255, 255, 255, 0.95) 105deg,
+    rgba(52, 211, 153, 0.7) 125deg,
+    rgba(34, 211, 238, 0.5) 145deg,
+    transparent 170deg,
     transparent 360deg
   );
-  transform: rotate(0deg);
-  animation: energy-spin 1.6s linear infinite;
-  opacity: 0.55;
+  animation: energy-spin 1.6s linear infinite, energy-hue 6s ease-in-out infinite;
+  opacity: 0.6;
   transition: opacity 0.45s ease;
   pointer-events: none;
   z-index: 0;
@@ -151,6 +253,27 @@ body::after {
   background: linear-gradient(165deg, #1a1a1a 0%, #0a0a0a 60%, #000000 100%);
   z-index: 1;
   pointer-events: none;
+}
+
+/* Inner glow on hover */
+.energy-border::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 27px;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(34, 211, 238, 0.03) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.group:hover.energy-border::before {
+  opacity: 1;
 }
 
 /* Sci-fi corner marks */
@@ -197,13 +320,26 @@ body::after {
 }
 
 .group:hover .corner {
-  border-color: rgba(255, 255, 255, 0.65);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.2);
 }
 
 @keyframes energy-spin {
   to {
+    --energy-angle: 360deg;
     transform: rotate(360deg);
+  }
+}
+
+@keyframes energy-hue {
+  0%, 100% {
+    filter: hue-rotate(0deg);
+  }
+  33% {
+    filter: hue-rotate(60deg);
+  }
+  66% {
+    filter: hue-rotate(-40deg);
   }
 }
 
@@ -272,10 +408,38 @@ body::after {
   box-shadow: 0 8px 24px rgba(139, 92, 246, 0.08);
 }
 
+/* ── Glass nav enhancement ── */
+.glass-nav {
+  background: rgba(5, 6, 10, 0.6);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Feature card number glow ── */
+.feature-number {
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+
 /* Reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .energy-border .energy-core,
   .dashboard-panel .energy-core {
     animation: none;
+  }
+
+  .text-shimmer::after,
+  .text-gradient-shift,
+  .ambient-orb,
+  .scroll-cue,
+  .animate-scroll-line {
+    animation: none !important;
+  }
+
+  .ambient-orb {
+    opacity: 0.08;
   }
 }

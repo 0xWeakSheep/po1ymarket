@@ -13,6 +13,8 @@ export function LandingNav() {
     return "intro";
   });
 
+  const [scrolled, setScrolled] = useState(false);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -33,16 +35,28 @@ export function LandingNav() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const linkBase =
     "relative cursor-pointer transition-colors duration-200 hover:text-slate-200";
   const linkInactive = "text-slate-400";
   const linkActive =
-    "text-white after:absolute after:bottom-[-3px] after:left-0 after:h-[1px] after:w-full after:bg-white/80";
+    "text-white after:absolute after:bottom-[-3px] after:left-0 after:h-[1px] after:w-full after:bg-gradient-to-r after:from-cyan-400/80 after:to-violet-400/80";
 
   const isAnchorActive = (href: string) => activeSection === href.slice(1);
 
   return (
-    <nav className="sticky top-4 z-30 mx-auto flex w-full max-w-[1480px] items-center justify-between rounded-full px-4 py-3 text-sm text-slate-300  sm:px-6">
+    <nav
+      className={`sticky top-4 z-30 mx-auto flex w-full max-w-[1480px] items-center justify-between rounded-full px-4 py-3 text-sm transition-all duration-500 sm:px-6 ${
+        scrolled ? "glass-nav" : ""
+      }`}
+    >
       <Link
         href="/"
         className="font-mono text-[11px] uppercase tracking-[0.34em] text-slate-100 transition-colors hover:text-white"
@@ -64,12 +78,12 @@ export function LandingNav() {
         >
           Workbench
         </Link>
-        <Link
+        <a
           href="#api"
           className={`${linkBase} ${linkInactive}`}
         >
           API
-        </Link>
+        </a>
         <a
           href="#faq"
           className={`${linkBase} ${
