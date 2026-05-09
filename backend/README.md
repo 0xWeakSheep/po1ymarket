@@ -37,7 +37,6 @@ Default HTTP port: `3000` (override with `PORT`).
 GitHub Actions workflows live in `.github/workflows/`:
 
 - `backend-ci.yml` — install, test, build
-- `backend-image.yml` — build and push `ghcr.io/<owner>/<repo>-backend`
-- `backend-deploy.yml` — pull and restart the container on a remote host over SSH
+- `backend-deploy.yml` — build, upload, and restart the service on a remote host over SSH with `pm2`
 
 Deployment notes and required GitHub secrets are documented in `../deploy/README.md`.
