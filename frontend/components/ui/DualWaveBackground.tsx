@@ -8,34 +8,26 @@ const LEFT_WORDS = [
   "RANK",
   "RESOLUTION",
   "MARKET",
-  "WORKBENCH",
-  "INGEST",
-  "PIPELINE",
-  "SCORE",
-  "LATENCY",
-  "NEST",
-  "JSON",
-];
-
-const RIGHT_WORDS = [
   "FETCH",
   "SOURCES",
   "EVIDENCE",
-  "TYPED",
+];
+
+const RIGHT_WORDS = [
   "ORACLE",
   "CONTRACT",
   "VOLUME",
   "TRADE",
-  "BET",
   "RESOLVE",
   "VERIFY",
   "PROOF",
+  "SCORE",
 ];
 
 interface FlashItem {
   index: number;
   side: "left" | "right";
-  intensity: number; // 0-1
+  intensity: number;
   color: "cyan" | "violet" | "emerald" | "white";
 }
 
@@ -51,12 +43,11 @@ export function DualWaveBackground() {
   useEffect(() => {
     if (getPrefersReducedMotion()) return;
 
-    const leftCount = 28;
-    const rightCount = 28;
-    const totalCount = leftCount + rightCount;
+    const leftCount = 16;
+    const rightCount = 16;
 
     function scheduleFlash() {
-      const delay = Math.random() * 1500 + 800; // 800-2300ms between flashes
+      const delay = Math.random() * 1500 + 800;
       const timer = setTimeout(() => {
         const side: "left" | "right" = Math.random() > 0.5 ? "left" : "right";
         const count = side === "left" ? leftCount : rightCount;
@@ -68,8 +59,7 @@ export function DualWaveBackground() {
         const flash: FlashItem = { index, side, intensity, color };
         setFlashes((prev) => [...prev.slice(-8), flash]);
 
-        // Auto-remove this flash after animation completes
-        const duration = intensity > 0.7 ? 1200 : intensity > 0.4 ? 900 : 650;
+        const duration = intensity > 0.7 ? 1600 : intensity > 0.4 ? 1200 : 900;
         const removeTimer = setTimeout(() => {
           setFlashes((prev) => prev.filter((f) => f !== flash));
         }, duration + 80);
@@ -80,7 +70,6 @@ export function DualWaveBackground() {
       timersRef.current.push(timer);
     }
 
-    // Two concurrent flash streams for sparse, cinematic feel
     for (let i = 0; i < 2; i++) {
       setTimeout(() => scheduleFlash(), i * 400);
     }
@@ -92,11 +81,11 @@ export function DualWaveBackground() {
   }, []);
 
   const leftWords = Array.from(
-    { length: 28 },
+    { length: 16 },
     (_, i) => LEFT_WORDS[i % LEFT_WORDS.length]
   );
   const rightWords = Array.from(
-    { length: 28 },
+    { length: 16 },
     (_, i) => RIGHT_WORDS[i % RIGHT_WORDS.length]
   );
 
@@ -109,7 +98,7 @@ export function DualWaveBackground() {
       className="pointer-events-none fixed inset-0 z-0 hidden select-none md:flex"
       style={{ gap: "22vw", padding: "0 2.5rem" }}
     >
-      <div className="flex h-full flex-1 flex-col justify-between py-10">
+      <div className="flex h-full flex-1 flex-col justify-between py-16">
         {leftWords.map((word, i) => {
           const flash = isFlashing("left", i);
           return (
@@ -127,10 +116,10 @@ export function DualWaveBackground() {
                   ? {
                       animationDuration:
                         flash.intensity > 0.7
-                          ? "350ms"
+                          ? "600ms"
                           : flash.intensity > 0.4
-                            ? "250ms"
-                            : "180ms",
+                            ? "450ms"
+                            : "320ms",
                     }
                   : undefined
               }
@@ -140,7 +129,7 @@ export function DualWaveBackground() {
           );
         })}
       </div>
-      <div className="flex h-full flex-1 flex-col items-end justify-between py-10">
+      <div className="flex h-full flex-1 flex-col items-end justify-between py-16">
         {rightWords.map((word, i) => {
           const flash = isFlashing("right", i);
           return (
@@ -158,10 +147,10 @@ export function DualWaveBackground() {
                   ? {
                       animationDuration:
                         flash.intensity > 0.7
-                          ? "350ms"
+                          ? "600ms"
                           : flash.intensity > 0.4
-                            ? "250ms"
-                            : "180ms",
+                            ? "450ms"
+                            : "320ms",
                     }
                   : undefined
               }

@@ -14,7 +14,6 @@ export function GeekLandingHero() {
         <div className="absolute inset-0 opacity-70">
           <ParticleNetwork />
         </div>
-        {/* Radial vignette to blend particles into page */}
         <div
           className="absolute inset-0"
           style={{
@@ -35,9 +34,9 @@ export function GeekLandingHero() {
         energyBorder
         className="relative z-10 w-full max-w-3xl p-8 backdrop-blur-sm sm:p-12 lg:p-14"
       >
-        <div className="flex flex-col items-start gap-6">
+        <div className="flex flex-col items-start gap-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.45em] text-cyan-300/85 sm:text-[11px]">
-            [ po1market · source workbench ]
+            [ po1market ]
           </p>
 
           <h1
@@ -49,13 +48,11 @@ export function GeekLandingHero() {
             <span className="text-gradient-shift">Before the Market Moves</span>
           </h1>
 
-          <p className="max-w-xl font-mono text-sm leading-relaxed text-slate-400/95">
-            <span className="text-emerald-400/90">{"// "}</span>
-            Typed request → ranked URLs from your configured recommendation API. No bundled mocks;
-            the console is the proof surface.
+          <p className="max-w-lg text-sm leading-relaxed text-slate-400/95">
+            Typed market queries, ranked evidence URLs. No mocks — the console is the proof surface.
           </p>
 
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="flex flex-wrap gap-3 pt-1">
             <Link
               href="/dashboard"
               className="group/btn relative inline-flex items-center justify-center overflow-hidden rounded-full border border-emerald-400/35 bg-emerald-500/15 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-100 shadow-[0_12px_40px_rgba(16,185,129,0.12)] transition-all duration-300 hover:border-emerald-300/50 hover:bg-emerald-500/25 hover:shadow-[0_12px_50px_rgba(16,185,129,0.22)] sm:text-xs"
