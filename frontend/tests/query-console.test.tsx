@@ -32,12 +32,12 @@ describe("QueryConsole", () => {
     expect(screen.getByText(/use custom market/i)).toBeInTheDocument();
   });
 
-  it("runs the example custom market interaction and shows ranked output from the API", async () => {
+  it("runs Example2 preset and shows ranked output from the API", async () => {
     const user = userEvent.setup();
 
     render(<QueryConsole />);
 
-    await user.click(screen.getByRole("button", { name: /example custom market/i }));
+    await user.click(screen.getByRole("button", { name: /^example2$/i }));
     await user.click(screen.getByRole("button", { name: /find sources/i }));
 
     await waitFor(() => {
@@ -65,28 +65,39 @@ describe("QueryConsole", () => {
 
     render(<QueryConsole />);
 
-    await user.click(screen.getByRole("button", { name: /example market id/i }));
+    await user.click(screen.getByRole("button", { name: /^example1$/i }));
 
     expect(screen.getByLabelText(/market id/i)).toHaveValue("540816");
   });
 
-  it("disables submit when the API base URL is not configured", () => {
+  it("uses /po1ymarket when NEXT_PUBLIC_API_BASE_URL is unset", async () => {
+    const user = userEvent.setup();
     vi.unstubAllEnvs();
 
     render(<QueryConsole />);
 
-    expect(screen.getByRole("button", { name: /find sources/i })).toBeDisabled();
-    expect(screen.getByText(/NEXT_PUBLIC_API_BASE_URL/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^example2$/i }));
+    await user.click(screen.getByRole("button", { name: /find sources/i }));
+
+    await waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+        "/po1ymarket/api/v1/recommendations",
+        expect.objectContaining({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    });
   });
 });
 
 describe("HomePage", () => {
-  it("renders hero, workbench link to dashboard, and FAQ", () => {
+  it("renders hero, workbench nav link, Questions section, and section anchors", () => {
     render(<HomePage />);
 
-    const main = screen.getByRole("main");
-    expect(within(main).getByRole("navigation")).toBeInTheDocument();
+    expect(screen.getByRole("navigation")).toBeInTheDocument();
 
+    const main = screen.getByRole("main");
     expect(
       within(main).getByRole("heading", {
         level: 1,
@@ -94,36 +105,24 @@ describe("HomePage", () => {
       }),
     ).toBeInTheDocument();
 
-    expect(within(main).getByRole("heading", { name: /faq/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^questions$/i })).toBeInTheDocument();
 
-    const workbench = within(main).getByRole("link", { name: /^workbench$/i });
-    expect(workbench).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: /^workbench$/i })).toHaveAttribute("href", "/dashboard");
 
     expect(document.getElementById("intro")).not.toBeNull();
     expect(document.getElementById("faq")).not.toBeNull();
+    expect(document.getElementById("api")).not.toBeNull();
   });
 });
 
 describe("DashboardPage", () => {
-  it("renders workbench overview, console, and API reference", () => {
+  it("renders back link and query console workspace", () => {
     render(<DashboardPage />);
 
     const main = screen.getByRole("main");
     expect(within(main).getByRole("navigation")).toBeInTheDocument();
-
-    expect(
-      within(main).getByRole("heading", {
-        name: /^how it works$/i,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(main).getByRole("heading", {
-        name: /api reference/i,
-      }),
-    ).toBeInTheDocument();
-
-    expect(document.getElementById("intro")).not.toBeNull();
+    expect(screen.getByRole("link", { name: /back to home/i })).toHaveAttribute("href", "/");
     expect(document.getElementById("console")).not.toBeNull();
-    expect(document.getElementById("api")).not.toBeNull();
+    expect(screen.getByRole("region", { name: /query console/i })).toBeInTheDocument();
   });
 });

@@ -7,10 +7,13 @@ import type {
 } from "@/types/recommendation";
 import { publicHostname } from "@/utils/display";
 
-export { getRecommendationsApiBaseUrl, isRecommendationsApiConfigured } from "@/config/recommendation";
+export { getRecommendationsApiBaseUrl, DEFAULT_RECOMMENDATIONS_API_BASE_URL } from "@/config/recommendation";
 
 /**
- * POST /api/v1/recommendations — caller supplies base URL (trimmed, no trailing slash).
+ * POST recommendation resource on the Nest API.
+ *
+ * @param baseUrl — Prefix only (see `config/recommendation.ts`): default pattern is `/po1ymarket`;
+ *   request URL is always `${baseUrl}/api/v1/recommendations`.
  */
 export async function fetchRecommendations(
   input: RecommendationsQueryInput,
@@ -75,16 +78,9 @@ export async function fetchRecommendations(
   }
 }
 
-const MISSING_API_MESSAGE =
-  "Recommendation API is not configured. Set NEXT_PUBLIC_API_BASE_URL in frontend/.env.local (see .env.example).";
-
-/** Query Console: reads env base URL or returns a configuration error. */
+/** Uses `getRecommendationsApiBaseUrl()` so the console follows the proxy-by-default setup. */
 export async function runRecommendationsQuery(
   input: RecommendationsQueryInput,
 ): Promise<RecommendationsRunState> {
-  const base = getRecommendationsApiBaseUrl();
-  if (!base) {
-    return { state: "error", results: [], errorMessage: MISSING_API_MESSAGE };
-  }
-  return fetchRecommendations(input, base);
+  return fetchRecommendations(input, getRecommendationsApiBaseUrl());
 }

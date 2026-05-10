@@ -6,9 +6,8 @@ const FAQS = [
     q: "Live data or mock?",
     a: (
       <>
-        Set{" "}
-        <span className="font-mono text-xs text-emerald-300/90">NEXT_PUBLIC_API_BASE_URL</span>{" "}
-        to wire the Query Console to the live Nest backend. Without it, the console stays in preview mode.
+        The console uses live API responses when the backend is connected. There is no bundled mock dataset—empty or error states mean the service is
+        unreachable or returned nothing for that query.
       </>
     ),
   },

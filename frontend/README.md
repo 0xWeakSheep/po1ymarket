@@ -7,7 +7,7 @@ Workbench UI for `po1market`. This package is **presentation + browser HTTP clie
 | 层级 | 目录 | 职责 |
 |------|------|------|
 | **后端 API** | 仓库内 `backend/`（Nest） | `POST /api/v1/recommendations`：解析市场 ID / 文案，返回 `recommended_sources`。业务规则、数据与打分在此维护。 |
-| **前端** | 本目录 | 布局与 Query Console UI；读 `NEXT_PUBLIC_API_BASE_URL`；向上述 API 发 `fetch`；把 JSON 映射为列表展示。类型见 `types/`，环境见 `config/`，见 `api/`。 |
+| **前端** | 本目录 | 布局与 Query Console UI；默认请求同源 `/po1ymarket`（由 Next 代理到 Nest）；可选 `NEXT_PUBLIC_API_BASE_URL` 直连调试。类型见 `types/`，环境见 `config/`，见 `api/`。 |
 
 ## 目录结构（约定）
 
@@ -47,9 +47,9 @@ npm run test
 
 2. 在 `frontend/.env.local` 配置（见 `.env.example`）：
 
-   - **直连**：`NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:3001`
-   - **经 Next 代理**：`BACKEND_PROXY_TARGET=http://127.0.0.1:3001` 且 `NEXT_PUBLIC_API_BASE_URL=/api/po1market`
+   - **经 Next 代理（默认）**：只设 `BACKEND_PROXY_TARGET=http://127.0.0.1:3001`。浏览器请求 `/po1ymarket/...`，由 Next 转发到 Nest。
+   - **直连（可选）**：`NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:3001`（不走 `/po1ymarket`）。
 
-3. 重启 `npm run dev`。控制台应在配置完整时显示 **API ready**。
+3. 重启 `npm run dev`。
 
-未设置 `NEXT_PUBLIC_API_BASE_URL` 时，控制台不会发起请求（按钮禁用并提示配置），**没有内置 mock 数据集**。
+**没有内置 mock 数据集**；未设 `BACKEND_PROXY_TARGET` 时，代理路径会 404，控制台会显示 API 错误信息。

@@ -2,10 +2,7 @@
 
 import { useId, useState } from "react";
 
-import {
-  isRecommendationsApiConfigured,
-  runRecommendationsQuery,
-} from "@/api/recommendations";
+import { runRecommendationsQuery } from "@/api/recommendations";
 import { PanelShell } from "@/components/ui/PanelShell";
 import { PixelLabel } from "@/components/ui/PixelLabel";
 import {
@@ -20,9 +17,6 @@ const INITIAL_RESPONSE: RecommendationsRunState = {
   state: "no-results",
   results: [],
 };
-
-const consoleSurfaceClass =
-  "relative flex h-full min-h-[28rem] flex-col rounded-[28px] border border-violet-400/30 bg-white/[0.07] p-6 shadow-[0_0_120px_-28px_rgba(139,92,246,0.5),0_32px_100px_rgba(2,6,23,0.6)] backdrop-blur-2xl ring-1 ring-white/10 sm:min-h-[32rem] sm:p-8";
 
 const inputGlowClass =
   "mt-2 w-full rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-white outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-slate-600 focus-visible:border-violet-400/55 focus-visible:shadow-[0_0_36px_rgba(139,92,246,0.28)] focus-visible:ring-2 focus-visible:ring-violet-500/30";
@@ -39,10 +33,9 @@ export function QueryConsole() {
   const [response, setResponse] = useState<RecommendationsRunState>(INITIAL_RESPONSE);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const apiReady = isRecommendationsApiConfigured();
   const hasInput =
     mode === "market-id" ? Boolean(marketId.trim()) : Boolean(marketQuestion.trim());
-  const canSubmit = apiReady && hasInput && !isLoading;
+  const canSubmit = hasInput && !isLoading;
 
   async function handleSubmit() {
     if (!hasInput || isLoading) return;
@@ -230,33 +223,11 @@ export function QueryConsole() {
           {/* Bottom action area */}
           <div className="mt-4 space-y-3"
           >
-            {!apiReady ? (
-              <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-amber-100/90"
-              >
-                Set{" "}
-                <span className="font-mono text-xs"
-                >NEXT_PUBLIC_API_BASE_URL</span>{" "}
-                in{" "}
-                <span className="font-mono text-xs"
-                >frontend/.env.local</span>{" "}
-                (see{" "}
-                <span className="font-mono text-xs"
-                >.env.example</span>) so the console can call the recommendation
-                API.
-              </p>
-            ) : null}
-
             <button
               type="button"
               disabled={!canSubmit}
               onClick={() => void handleSubmit()}
-              title={
-                !apiReady
-                  ? "Configure NEXT_PUBLIC_API_BASE_URL first"
-                  : !hasInput
-                    ? "Enter a market ID or question first"
-                    : undefined
-              }
+              title={!hasInput ? "Enter a market ID or question first" : undefined}
               className={`w-full rounded-full bg-gradient-to-r from-sky-400 to-violet-500 px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-[0_14px_48px_rgba(56,189,248,0.35),0_0_40px_rgba(139,92,246,0.2)] transition duration-200 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:brightness-100 sm:w-auto ${btnBase}`}
             >
               {isLoading ? "Searching…" : "Find Sources"}

@@ -11,7 +11,7 @@ const FEATURES = [
   },
   {
     title: "Live API",
-    desc: "Wire directly to the NestJS backend. Set NEXT_PUBLIC_API_BASE_URL and the console goes live instantly.",
+    desc: "Results come from the running recommendation service over a same-origin connection—no third-party scrapers in the browser path.",
   },
 ];
 

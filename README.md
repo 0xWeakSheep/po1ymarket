@@ -35,4 +35,4 @@ npm install
 npm run dev
 ```
 
-Use `frontend/.env.local` for local runs: see `frontend/.env.example` — direct `NEXT_PUBLIC_API_BASE_URL` or same-origin proxy (`BACKEND_PROXY_TARGET` + `NEXT_PUBLIC_API_BASE_URL=/api/po1market`). Without the public base URL, the console cannot submit queries.
+Use `frontend/.env.local` for local runs: see `frontend/.env.example`. By default the console calls `/po1ymarket` (rewrite to Nest via `BACKEND_PROXY_TARGET`). Optional `NEXT_PUBLIC_API_BASE_URL` overrides that for browser-direct debugging.

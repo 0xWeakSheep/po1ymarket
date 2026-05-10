@@ -155,7 +155,7 @@ npm install
 npm run dev
 ```
 
-前端需要配置 `frontend/.env.local`，至少让 `NEXT_PUBLIC_API_BASE_URL` 指向后端。
+前端需要配置 `frontend/.env.local`：一般用 `BACKEND_PROXY_TARGET` 指向 Nest（浏览器默认请求 `/po1ymarket`）。若要浏览器直连后端，再设可选的 `NEXT_PUBLIC_API_BASE_URL`。
 
 ### 路线 2：先看最小闭环
 
