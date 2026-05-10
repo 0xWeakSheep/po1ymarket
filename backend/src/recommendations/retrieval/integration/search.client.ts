@@ -1,6 +1,6 @@
 /**
  * 搜索客户端
- * 
+ *
  * 功能：
  * 1. 收集候选源：reddit、google news
  * 2. 返回候选源列表：去重、限制数量
@@ -8,9 +8,9 @@
 
 import { Inject, Injectable } from '@nestjs/common'
 
-import { SETTINGS } from '../../common/constants'
-import type { Settings } from '../../config/settings'
-import type { CandidateSource } from '../types/recommendations'
+import { SETTINGS } from '../../../common/constants'
+import type { Settings } from '../../../config/settings'
+import type { CandidateSource } from '../../types/recommendations'
 
 @Injectable()
 export class SearchClient {
@@ -18,7 +18,7 @@ export class SearchClient {
 
   /**
    * 收集候选源
-   * 
+   *
    * 输入：
    * 1. 查询词列表
    * 2. 官方来源
@@ -58,7 +58,7 @@ export class SearchClient {
 
   /**
    * 搜索 Google News
-   * 
+   *
    * 输入：
    * 1. 查询词
    * 2. 限制
@@ -96,7 +96,7 @@ export class SearchClient {
 
   /**
    * 搜索 Reddit
-   * 
+   *
    * 输入：
    * 1. 查询词
    * 2. 限制
@@ -140,19 +140,7 @@ export class SearchClient {
     })
   }
 
-  /**
-   * 获取文本
-   * 
-   * 输入：
-   * 1. URL
-   */
-  /**
-   * 获取 JSON
-   * 
-   * 输入：
-   * 1. URL
-   */
-    private async fetchText (url: string): Promise<string> {
+  private async fetchText (url: string): Promise<string> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), this.settings.requestTimeoutSeconds * 1000)
 

@@ -9,6 +9,7 @@
 
 - `domain/retrieval.service.ts`：统一入口，串联 query + search
 - `domain/candidate-retriever.service.ts`：候选召回服务，负责调用 `SearchClient`
+- `integration/search.client.ts`：候选源 provider 聚合调用（Google News / Reddit）
 
 ## 对上游暴露
 

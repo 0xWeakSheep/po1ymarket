@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common'
 
 import { SETTINGS } from '../../../common/constants'
 import type { Settings } from '../../../config/settings'
-import { SearchClient } from '../../clients/search.client'
 import type { CandidateSource, MarketContext } from '../../types/recommendations'
+import { SearchClient } from '../integration/search.client'
 
 @Injectable()
 export class CandidateRetrieverService {

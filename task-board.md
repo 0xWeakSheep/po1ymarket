@@ -75,7 +75,9 @@
 - `/backend/src/recommendations/query/api/query.controller.ts`
 - `/backend/src/recommendations/query/domain/query.service.ts`
 - `/backend/src/recommendations/query/integration/query-market.provider.ts`
-- `/backend/src/recommendations/clients/search.client.ts`
+- `/backend/src/recommendations/retrieval/domain/retrieval.service.ts`
+- `/backend/src/recommendations/retrieval/domain/candidate-retriever.service.ts`
+- `/backend/src/recommendations/retrieval/integration/search.client.ts`
 - `/backend/src/recommendations/scoring.service.ts`
 - `/backend/src/recommendations/clients/polymarket.client.ts`
 - `/docs/superpowers/search-current-state.md`（搜索现状基线与演进记录）

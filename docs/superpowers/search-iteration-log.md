@@ -41,9 +41,10 @@
   - `backend/src/recommendations/query/integration/query-market.provider.ts`
   - `backend/src/recommendations/retrieval/domain/retrieval.service.ts`
   - `backend/src/recommendations/retrieval/domain/candidate-retriever.service.ts`
+  - `backend/src/recommendations/retrieval/integration/search.client.ts`
   - `backend/src/recommendations/recommendations.service.ts`
   - `backend/src/recommendations/recommendations.module.ts`
-  - `backend/src/recommendations/domain/market/market-context.resolver.ts`
+  - `backend/src/recommendations/clients/search.client.ts`
   - `backend/src/recommendations/retrieval/README.md`
   - `backend/src/recommendations/query/README.md`
   - `backend/src/recommendations/types/recommendations.ts`
@@ -52,6 +53,7 @@
   - 新增 `QueryService` 统一承载 query 逻辑：`buildQueries`（纯构建）+ `resolveQueries`（含 market 解析）；
   - 增加 `QueryService.resolveMarketContext`，由推荐主链路直接复用，移除 `market-context.resolver`；
   - 新增 `retrieval` 层，把 `query + search` 收口为统一服务（`RetrievalService`）；
+  - `SearchClient` 从 `clients/` 迁移至 `retrieval/integration/`，实现查询层内部闭环；
   - 目录治理升级为 `api/domain/integration` 三层，分别承载功能接口、业务编排、提供方整合；
   - `query-builder.ts` 迁移至 `query/domain/query-builder.ts`，并同步迁移相关单测与引用路径；
   - 新增 `POST /api/v1/search/queries`，可独立输出 query 结果，作为后端查询能力接口；

@@ -43,7 +43,7 @@
   - 无基于首轮结果的二次改写机制；
   - 对复杂长问句和多条件问题鲁棒性一般。
 
-### 3.2 候选召回：`backend/src/recommendations/clients/search.client.ts`
+### 3.2 候选召回：`backend/src/recommendations/retrieval/integration/search.client.ts`
 
 - 当前 provider：
   - Polymarket 官方 `resolutionSource`（若为 URL，直接入候选）；
@@ -152,3 +152,4 @@
 - Query 模块拆分为独立 `QueryService`，并新增 query 预览接口 `POST /api/v1/search/queries`。
 - Query 模块升级为文件夹治理拆分：`api/domain/integration` 三层。
 - 推荐主链路改为直接调用 `QueryService.resolveMarketContext`，移除 `market-context.resolver`。
+- SearchClient 迁移至 `retrieval/integration`，与查询层目录治理保持一致。
