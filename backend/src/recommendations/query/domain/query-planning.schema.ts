@@ -13,9 +13,6 @@ export const queryPlanPayloadSchema = z
       .string()
       .refine((s) => /\S/.test(s), '必须包含非空白字符'),
     variants: z.array(z.string()).max(32).optional(),
-    intent_tags: z.array(z.string()).max(64).optional(),
-    entities: z.array(z.string()).max(64).optional(),
-    time_constraints: z.array(z.string()).max(16).optional(),
     confidence: z.number().min(0).max(1).optional()
   })
   .strict()

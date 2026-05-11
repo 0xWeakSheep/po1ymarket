@@ -10,6 +10,7 @@ import { Inject, Injectable } from '@nestjs/common'
 
 import { SETTINGS } from '../../common/constants'
 import type { Settings } from '../../config/settings'
+import { loadPromptMd } from '../../prompts/load-prompt-md'
 import type { LlmClient, LlmScoreResult } from '../types/recommendations'
 
 @Injectable()
@@ -46,17 +47,24 @@ export class OpenAiClient implements LlmClient {
           input: [
             {
               role: 'system',
-              content: 'You score candidate links for a prediction market research agent. Be strict on staleness and ambiguity.'
+              content: loadPromptMd('candidate-scoring.system')
             },
             {
               role: 'user',
               content: JSON.stringify({
                 market_question: input.marketQuestion,
-                market_description: input.marketDescription,
+                ...(input.marketDescription !== undefined && {
+                  market_description: input.marketDescription
+                }),
                 candidate_title: input.candidateTitle,
-                candidate_snippet: input.candidateSnippet,
-                published_at: input.publishedAt,
-                task: 'Return JSON with relevance_score, freshness_score, ai_score, rationale. Scores must be numbers between 0 and 1.'
+                ...(input.candidateSnippet !== undefined && {
+                  candidate_snippet: input.candidateSnippet
+                }),
+                ...(input.publishedAt !== undefined && {
+                  published_at: input.publishedAt
+                }),
+                task:
+                  'Return JSON with relevance_score, freshness_score, ai_score, rationale. Scores must be numbers between 0 and 1.'
               })
             }
           ]

@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 
 import { SETTINGS } from '../../../common/constants'
 import type { Settings } from '../../../config/settings'
+import { loadPromptMd } from '../../../prompts/load-prompt-md'
 import type {
   QueryPlanningCallResult,
   QueryPlanningClientPort
@@ -162,16 +163,15 @@ export class QueryPlanningClient implements QueryPlanningClientPort {
     resolutionSource?: string
   }): OpenAI.ChatCompletionMessageParam[] {
     return [
-      {
-        role: 'system',
-        content: 'You generate concise web search queries for prediction market research. Reply with a single JSON object only: primary_query (string), variants (string array), confidence (number 0-1). No markdown, no code fences.'
-      },
+      { role: 'system', content: loadPromptMd('query-planning.system') },
       {
         role: 'user',
         content: JSON.stringify({
           question: input.question,
-          description: input.description,
-          resolution_source: input.resolutionSource,
+          ...(input.description !== undefined && { description: input.description }),
+          ...(input.resolutionSource !== undefined && {
+            resolution_source: input.resolutionSource
+          }),
           max_queries: 6
         })
       }

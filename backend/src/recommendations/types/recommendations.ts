@@ -77,9 +77,6 @@ export type QueryPreviewResponse = {
 export type QueryPlanPayload = {
   primary_query: string
   variants?: string[]
-  intent_tags?: string[]
-  entities?: string[]
-  time_constraints?: string[]
   confidence?: number
 }
 
