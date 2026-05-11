@@ -38,7 +38,10 @@
 - 已拆出 Query 独立服务：`QueryService`
 - 已新增 Query 独立接口：`POST /api/v1/search/queries`
 - Query 目录治理已落地：`query/api`（功能接口）+ `query/domain`（业务）+ `query/integration`（提供方整合）
-- Query LLM Planner 第一阶段已接入：`QueryService.buildQueries`（LLM 优先 + 规则 fallback）
+- Query LLM Planner：`QueryService.buildQueries` **LLM 优先 + 规则 fallback**；实现为 **`openai` Chat Completions**（DeepSeek/OpenAI，见 `backend/README.md`）
+- Planner **system** 文案：`backend/src/prompts/agent-prompt/query-planning.system.md`（`loadPromptMd`）；候选人打分：**`agent-prompt/candidate-scoring.system.md`**
+- Planner 返回 JSON 经 **Zod `.strict()`**（`query-planning.schema.ts`），契约三键：`primary_query` / `variants` / `confidence`
+- **`planning_meta`** 已在预览与推荐响应中透出（含 `fallback_reason`、`query_source`；`PO1MARKET_QUERY_DEBUG=true` 时可有 `debug_detail`）；前端 Query Console 已可做基础展示
 - 已新增 Retrieval 层：统一串联 `query -> candidate pool`（`RetrievalService`）
 - 推荐主链路已改为直接复用 `QueryService.resolveMarketContext`（移除 `market-context.resolver`）
 - 已支持 `market_id` 和 `market_question` 两种入口
@@ -56,8 +59,8 @@
 ### 下一步
 
 - 为 `POST /api/v1/search/queries` 增加 e2e 验证
-- 为 query planner 输出补充 `source/fallback_reason` 观测字段
-- 优化 query 生成策略
+- 迭代 `query-planning.system.md` 与本站样本命中率（与 Zod 契约保持同步）
+- 优化 query 生成策略（多轮 / 按源别称等，视产品优先级）
 - 增加更多 source provider
 - 提升时间敏感盘口的 freshness 判断
 - 优化弱相关结果过滤
@@ -76,12 +79,16 @@
 - `/backend/src/recommendations/query/domain/query-builder.ts`
 - `/backend/src/recommendations/query/api/query.controller.ts`
 - `/backend/src/recommendations/query/domain/query.service.ts`
+- `/backend/src/recommendations/query/integration/query-planning.client.ts`
+- `/backend/src/recommendations/query/domain/query-planning.schema.ts`
+- `/backend/src/prompts/agent-prompt/`、`/backend/src/prompts/load-prompt-md.ts`
 - `/backend/src/recommendations/query/integration/query-market.provider.ts`
 - `/backend/src/recommendations/retrieval/domain/retrieval.service.ts`
 - `/backend/src/recommendations/retrieval/domain/candidate-retriever.service.ts`
 - `/backend/src/recommendations/retrieval/integration/search.client.ts`
 - `/backend/src/recommendations/scoring.service.ts`
 - `/backend/src/recommendations/clients/polymarket.client.ts`
+- `/docs/superpowers/api-contract-and-errors.md`（`planning_meta` 与降级语义）
 - `/docs/superpowers/search-current-state.md`（搜索现状基线与演进记录）
 - `/docs/superpowers/search-iteration-log.md`（技术迭代日志）
 - `/docs/superpowers/frontend-iteration-log.md`（前端迭代日志）

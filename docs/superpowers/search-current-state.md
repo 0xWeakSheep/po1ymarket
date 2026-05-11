@@ -1,6 +1,6 @@
 # Search 现状基线文档（持续更新）
 
-> 最后更新：2026-05-11  
+> 最后更新：2026-05-11（Query Planner：Markdown 提示词 + Zod strict；与 task-board / search-iteration-log 同步）  
 > 维护目标：作为“搜索能力演进”的单一事实源（Single Source of Truth），后续每次改动都在此文档增量更新。
 
 关联迭代记录：`docs/superpowers/search-iteration-log.md`
@@ -28,21 +28,12 @@
 
 ### 3.1 Query 生成：`backend/src/recommendations/query/domain/query.service.ts`
 
-- 当前策略：已拆分为独立 QueryService，对外提供 query 预览接口，内部仍采用规则生成，多数情况下产出 2~4 条 query。
-- 当前策略：已接入“LLM 优先 + 规则兜底”单阶段 query planning。LLM 仅负责规划，本地负责校验与清洗。
-- 关键行为：
-  - 目录治理采用三层：`query/api`（功能接口）、`query/domain`（业务编排）、`query/integration`（提供方整合）；
-  - `query-builder.ts` 已迁移至 `query/domain/query-builder.ts`，与 QueryService 共同归属业务层；
-  - 新增 `POST /api/v1/search/queries`，支持基于 `market_id` 或 `market_question` 返回 `searchQueries`；
-  - `MarketContextResolverService` 改为复用 `QueryService.buildQueries`，避免 query 逻辑散落在 resolver；
-  - `normalizeWhitespace` 做空白归一；
-  - `extractFocusClause` 基于 `before/after/by/if/unless/until` 截取主干；
-  - 移除停用词后取前 6 个 token 形成 key phrase；
-  - 若存在 `resolutionSource`，追加 `"<focus> official source"`。
-- 已知限制：
-  - LLM planner 目前仅接入最小 schema（`primary_query` / `variants` / `confidence`），语义标签字段尚未纳入决策；
-  - 无基于首轮结果的二次改写机制；
-  - 对复杂长问句和多条件问题鲁棒性一般。
+- **策略**：独立 `QueryService`；对外 `POST /api/v1/search/queries`；“**LLM 优先 + 规则兜底**”单阶段 planning；降级时回退 `query/domain/query-builder.ts`。
+- **Planner**：`integration/query-planning.client.ts` 使用 `openai` SDK **Chat Completions**（兼容 DeepSeek/OpenAI，`response_format: { type: 'json_object' }`），密钥优先级见 `backend/README.md`。System 文案来自 **`backend/src/prompts/agent-prompt/query-planning.system.md`**（`load-prompt-md.ts` + `PROMPT_MARKDOWN_SUBDIR`，`nest-cli` 将 `prompts/agent-prompt/*.md` 拷入 `dist`）。
+- **校验**：`query/domain/query-planning.schema.ts` 在解析后对 Planner 输出做 **Zod `.strict()`**（仅允许 `primary_query`、`variants`、`confidence`），清洗与去重在 `sanitizePlannedQueries`，有效条数不足 2 则回退规则。
+- **可观测**：主链路与预览接口附带 `planning_meta`（`query_source`、`fallback_reason`、可选 `debug_detail`；Debug 模式下含 Zod/网络摘要）。
+- **规则兜底行为**（`query-builder`）：`normalizeWhitespace`；`extractFocusClause`（`before/after/by/if/unless/until`）；停用词后主 key phrase（最多约 6 token）；若有 `resolutionSource` 追加 `official source` 类查询。
+- **已知限制**：契约刻意保持三字段 JSON，不包含 intent/实体标签字段；尚无基于首轮结果的二次 query 改写；长问句、多条件问句 planner 命中率仍不稳定。
 
 ### 3.2 候选召回：`backend/src/recommendations/retrieval/integration/search.client.ts`
 
@@ -93,10 +84,11 @@
 
 ## 4. 前端消费现状
 
-关键文件：`frontend/components/dashboard/QueryConsole.tsx`
+关键文件：`frontend/components/dashboard/QueryConsole.tsx`、`frontend/api/recommendations.ts`、`frontend/types/recommendation.ts`
 
 - 已支持两种输入模式：`market-id` 与 `custom market question`；
 - 可展示 loading / error / no-results / results 状态；
+- 推荐与 Query 预览的响应体可携带 `planning_meta`（LLM/规则来源、回退原因、仅 Debug 下的 `debug_detail`），控制台已做基础展示（与后端契约见 `api-contract-and-errors.md`）；
 - 当前前端职责明确：不做业务排序逻辑，仅负责输入、调用、展示。
 
 ## 5. 准确率提升的核心瓶颈（当前阶段）
@@ -157,6 +149,16 @@
 
 ### 2026-05-11
 
-- Query 层新增 `query-planning.schema` 与 `query-planning.spec`，实现 JSON 解析、schema 校验与 query sanitize。
-- QueryService 升级为异步 `buildQueries`：优先调用 `QueryPlanningClient`，异常时自动 fallback 到 `query-builder`。
-- QueryPlanningClient 完成首版接入（OpenAI `/responses` 单次调用 + 超时保护 + 空输出兜底）。
+- Query 层新增 `query-planning.schema` 与 `query-planning.spec`，实现 JSON 解析与 query sanitize。
+- QueryService 升级为异步 Planner 路径：接入 `QueryPlanningClient`，异常回退 `query-builder`。
+- 早期文档曾误记为 OpenAI **`/responses`**；Planner 实际为 **Chat Completions**（与代码一致）。
+
+### 2026-05-11（续）
+
+- 将 Planner / 候选人打分的 **system 提示词**置于 `backend/src/prompts/agent-prompt/*.md`，由 `load-prompt-md.ts` 读取；`nest-cli.json` 将 `prompts/agent-prompt/*.md` 在构建期拷入 `dist`（**若改目录名须同步改 `PROMPT_MARKDOWN_SUBDIR` 与 assets**）。
+- Planner 输出校验改为 **Zod**（`.strict()`），契约收窄为 **`primary_query` / `variants` / `confidence` 三键**；`payload_parse_failed` 与 Debug 下的 `debug_detail` 可与 Zod 错误对照。
+- 明确：候选人打分仍为 `OpenAiClient` → **`/responses`**，与 Query Planner 分层独立。
+
+### 2026-05-11（路径）
+
+- 文档曾误写 `prompts/md/`；运行时与 **`prompts/agent-prompt/`** 对齐（见 `load-prompt-md`、`nest-cli` assets）。

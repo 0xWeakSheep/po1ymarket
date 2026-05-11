@@ -7,7 +7,7 @@ Applications in this repo:
 
 ## Documentation
 
-- **`docs/superpowers/README.md`** — 技术文档治理入口（前后端分治；**API 契约与错误见 [`api-contract-and-errors.md`](./superpowers/api-contract-and-errors.md)**）
+- **`backend/src/recommendations/query/README.md`** — Query 预览、`planning_meta`、`agent-prompt/*.md` 与代码对齐说明
 - **`docs/superpowers/search-current-state.md`** — 后端搜索现状基线
 - **`docs/superpowers/search-iteration-log.md`** — 后端搜索迭代记录
 - **`docs/superpowers/frontend-iteration-log.md`** — 前端迭代记录

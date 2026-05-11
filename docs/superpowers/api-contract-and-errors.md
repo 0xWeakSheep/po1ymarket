@@ -1,6 +1,6 @@
 # API 契约与错误沉淀（前后端协同）
 
-> 最后更新：2026-05-11  
+> 最后更新：2026-05-11（Planner：Markdown 提示词 + Zod 输出校验）  
 > 受众：人机协作者、`agent` 在改接口或消费接口前应读取本文。
 
 ## 治理目标
@@ -12,7 +12,8 @@
 ## Agent / 开发者必做清单（改 API 或改前端调用时）
 
 1. **确认契约落点**
-   - 推荐与 Query 预览相关：维护 `backend/src/recommendations/query/README.md`，并在 `backend/src/recommendations/types/recommendations.ts` 与后端 Controller 返回值对齐。  
+   - 推荐与 Query 预览相关：维护 `backend/src/recommendations/query/README.md`（含 **先读代码再改文档** 的维护纪律），并在 `backend/src/recommendations/types/recommendations.ts` 与后端 Controller 返回值对齐。  
+   - Planner **提示词文件路径**以 `load-prompt-md.ts` 的 `PROMPT_MARKDOWN_SUBDIR` 与 `nest-cli.json` `assets` 为准；勿只改文档不改构建资源。  
    - 整条搜索/推荐链路概览：`docs/superpowers/search-current-state.md`（行为或瓶颈变化时必须更新）。
 2. **字段与命名**
    - 对外 HTTP JSON 中与历史一致的部分保持 **snake_case**（如 `recommended_sources`、`planning_meta`、`fallback_reason`）。  
@@ -40,10 +41,10 @@
 
 - **`planner_configured`**：`boolean`，环境是否配置了可用于 Planner 的密钥。  
 - **`query_source`**：`'llm' \| 'rules'`。  
-- **`fallback_reason`**（回退规则时）：`planner_disabled` | `llm_empty_content` | `llm_request_failed` | `payload_parse_failed` | `queries_sanitized_insufficient`。  
+- **`fallback_reason`**（回退规则时）：`planner_disabled` | `llm_empty_content` | `llm_request_failed` | `payload_parse_failed` | `queries_sanitized_insufficient`。其中 `payload_parse_failed` 覆盖 **`JSON.parse` 失败** 与 **Planner 输出未通过 Zod strict 校验**（多余字段、类型错误、`confidence` 越界等）。  
 - **`upstream_http_status` / `upstream_code`**：Planner HTTP 失败时可选。  
 - **`message`**：简短、面向人的说明（不含密钥）。  
-- **`debug_detail`**：仅当服务端 `PO1MARKET_QUERY_DEBUG=true` 时可能出现，便于与终端日志对照。
+- **`debug_detail`**：仅当服务端 `PO1MARKET_QUERY_DEBUG=true` 时可能出现；可含 Planner HTTP 兜底说明、原始错误摘要、JSON 前缀，或 **Zod 校验问题摘要**（与 `backend/src/prompts/agent-prompt/query-planning.system.md` 及 `query-planning.schema` 对照排障）。
 
 ## Agent 自检句（可复制到任务末尾）
 

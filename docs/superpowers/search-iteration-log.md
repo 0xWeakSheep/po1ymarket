@@ -1,6 +1,6 @@
 # Backend Search 技术迭代记录
 
-> 最后更新：2026-05-10  
+> 最后更新：2026-05-11  
 > 用途：记录后端搜索链路的每次技术迭代，沉淀“做了什么、为什么做、结果如何、下一步是什么”。
 
 ## 1. 与现有文档关系
@@ -47,9 +47,9 @@
   - `docs/superpowers/search-current-state.md`
 - **实现要点**：
   - 增加 `parseQueryPlanPayload` 与 `sanitizePlannedQueries`，将 LLM 输出统一为可控本地结构；
-  - 新增 `QueryPlanningClient`，单次调用 OpenAI `/responses`，并在集成层内处理 timeout / 非 2xx / 空输出；
+  - 新增 `QueryPlanningClient`，通过 `openai` SDK 调用 **`chat.completions.create`**（非 `/responses`），并在集成层处理 timeout / 空输出；
   - `QueryService.buildQueries` 改为异步编排：LLM 成功则返回清洗后结果，失败统一回退 `buildSearchQueries`；
-  - 回退条件覆盖 invalid JSON、schema violation、低产出（<2 条）等典型失败场景。
+  - 回退条件覆盖 invalid JSON、校验失败（后续在同日迭代为 **Zod strict**）、低产出（不足 2 条）等场景。
 - **验证方式**：
   - `npm run test -- query/domain/query-planning.spec.ts query/domain/query.service.spec.ts query/domain/query-builder.spec.ts`
   - `npm test`
@@ -60,10 +60,26 @@
 - **风险与回滚**：
   - 风险：planner prompt 与 schema 仍较简化，复杂语义场景命中质量可能波动；
   - 回滚：关闭 `QueryPlanningClient`（无 key 或返回空）即可自动回到 legacy query-builder。
-- **下一步**：
-  - 在 `QueryPreviewResponse` / 日志中补充 `source` 与 `fallback_reason` 观测字段；
-  - 增加 `/api/v1/search/queries` 的 e2e 覆盖；
-  - 根据样本结果迭代 planner prompt 与字段约束。
+- **下一步**：（已由同后续迭代部分落实）`planning_meta`、`/search/queries` e2e、prompt 与契约持续迭代。
+
+### 2026-05-11（续）Planner 提示词 Markdown 化 + Zod strict 输出契约
+
+- **背景**：提示词需可由非研发直接维护；Planner 输出需与运行时校验一致，减少「多键/错型」静默失败。
+- **改动范围**：`backend/src/prompts/agent-prompt/*`、`backend/src/prompts/load-prompt-md.ts`、`backend/nest-cli.json`、`backend/src/recommendations/query/domain/query-planning.schema.ts`、`backend/src/recommendations/types/recommendations.ts`、`backend/README.md`、`backend/src/recommendations/query/README.md`、`docs/superpowers/**`、`docs/superpowers/plans/**`、`docs/superpowers/specs/**`、`task-board.md`、根 `README.md`
+- **实现要点**：System 文案用 `.md` 收集，构建拷贝入 `dist`；`queryPlanPayloadSchema` 使用 Zod `.strict()`，仅允许三键；移除此前「模块级 Prompts DI」复杂形态，调用方直接 `loadPromptMd`。
+- **验证方式**：`npm test`、`npm run build`
+- **结果**：文档、契约与实现一致；Planner 仍为 Chat Completions；打分仍为 `/responses`。
+- **风险与回滚**：运行时依赖 `dist/prompts/agent-prompt` 或 `cwd` 下源码路径；缺失文件会抛错——`load-prompt-md` 对 dist / src 双路径探测。
+- **下一步**：按样本继续迭代 `query-planning.system.md`；可考虑 e2e 覆盖 `/search/queries`。
+
+### 2026-05-11（路径）提示词目录与 loader / assets 对齐
+
+- **背景**：阶段性文档写过 `prompts/md/`，与仓库采用的 **`prompts/agent-prompt/`** 不一致，易导致拷贝与运行时路径错位。
+- **改动范围**：`load-prompt-md.ts`、`nest-cli.json`、`query/README`、`task-board`、`docs/superpowers/*`、根 `README`、`backend/README`。
+- **实现要点**：以 `PROMPT_MARKDOWN_SUBDIR = 'agent-prompt'` 为单一常量；`nest-cli` assets 使用 `prompts/agent-prompt/*.md`。
+- **验证方式**：`npm run build`（确认 `dist/prompts/agent-prompt/*.md`）、`npm test`。
+- **结果**：源码、打包产物与文档同源。
+- **下一步**：批量更新文档前**先核对**上述三处代码事实源。
 
 ### 2026-05-10 Query 模块服务化拆分（代码 + 接口）
 

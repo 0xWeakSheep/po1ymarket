@@ -1,7 +1,7 @@
 # Query 模块接口文档（临时）
 
-> 说明：该文档当前放在 `query/` 目录下，后续会统一整合到全局接口文档。  
-> **前后端契约与错误沉淀（Agent 必读）**：`docs/superpowers/api-contract-and-errors.md`。凡改路由、响应体或 Planner 诊断字段，必须与该文档及本文同步更新。
+> **维护纪律**：改 Planner 行为、提示词或对外契约时，先对照 **`integration/query-planning.client.ts`**、**`prompts/load-prompt-md.ts`**（及 `PROMPT_MARKDOWN_SUBDIR`）、**`nest-cli.json` 的 `assets`**、**`domain/query-planning.schema.ts`**，再改本文与 `docs/superpowers/*`、`task-board.md`，避免文档与运行时路径脱节。  
+> **前后端契约与错误（Agent 必读）**：`docs/superpowers/api-contract-and-errors.md`。凡改路由、响应体或 Planner 诊断字段，必须与该文档及本文同步更新。
 
 ## 1. 模块职责
 
@@ -24,6 +24,12 @@
 - `domain/query-builder.ts`
 - `integration/query-market.provider.ts`
 - `integration/query-planning.client.ts`
+
+**LLM 提示词（系统级文案，非 Nest 注入）**
+
+- Planner system：`backend/src/prompts/agent-prompt/query-planning.system.md`（`QueryPlanningClient` → `loadPromptMd('query-planning.system')`）。
+- 候选人打分 system：`backend/src/prompts/agent-prompt/candidate-scoring.system.md`（`OpenAiClient` → `loadPromptMd('candidate-scoring.system')`）。
+- 构建期拷贝：`nest-cli.json` → `compilerOptions.assets` 含 `prompts/agent-prompt/*.md`，产物位于 `dist/prompts/agent-prompt/`（与 `load-prompt-md` 内 `__dirname` 拼接一致）。
 
 ## 3. 接口定义
 
@@ -83,24 +89,26 @@
 1. `QueryController` 接收请求并做基础参数校验
 2. `QueryService.resolveQueries` 执行业务编排
 3. `QueryMarketProvider.resolveQueryMarketInput` 获取标准化的 market 输入
-4. `QueryService.buildQueries` 优先调用 `QueryPlanningClient`（单次 LLM）
-5. `query-planning.schema` 执行 JSON 解析与本地 sanitize
-6. 任意异常（timeout/provider error/invalid json/schema violation/low yield）自动回退 `query-builder`
+4. `QueryService.buildQueries` 优先调用 `QueryPlanningClient`（单次 LLM，Chat Completions + `response_format: json_object`）
+5. `query-planning.schema`：`JSON.parse` 后使用 **Zod** `queryPlanPayloadSchema`（`.strict()`，仅允许 `primary_query` / `variants` / `confidence`），再经 `sanitizePlannedQueries` 归一与去重
+6. 任意异常（timeout/provider error/invalid json/**Zod 校验失败**/low yield）自动回退 `query-builder`
 7. 返回 `QueryPreviewResponse`
 
 ## 4.1 LLM Planner 输出约束（当前）
 
-`QueryPlanningClient` 使用官方 [`openai`](https://www.npmjs.com/package/openai) SDK 调用 **Chat Completions**，从 `choices[0].message.content` 取 **一段 JSON 文本**，核心字段：
+`QueryPlanningClient` 使用官方 [`openai`](https://www.npmjs.com/package/openai) SDK 调用 **Chat Completions**，从 `choices[0].message.content` 取 **一段 JSON 文本**。允许字段（与 `queryPlanPayloadSchema.strict()` 一致）：
 
-- `primary_query`: string（必填）
-- `variants`: string[]（可选）
-- `confidence`: number（可选，0~1）
+- `primary_query`: string（必填，且须含非空白字符）
+- `variants`: string[]（可选，服务端还会做 `max(32)` 条数上限校验）
+- `confidence`: number（可选，须在 `[0, 1]`）
 
 本地始终进行：
 
-- 结构校验（核心字段不合法即 fallback）
+- **Zod** 结构校验（多余键、类型错误、`confidence` 越界等一律 `payload_parse_failed` 回退）
 - 文本标准化与去重（`sanitizePlannedQueries`）
-- 数量裁剪（最多 6 条，少于 2 条则 fallback）
+- 数量裁剪（最多 6 条，清洗后有效条数 **少于 2** 则 `queries_sanitized_insufficient` 回退）
+
+开启 `PO1MARKET_QUERY_DEBUG=true` 时，`planning_meta.debug_detail` 可包含 **`JSON.parse` 失败** 或 **Zod 报错摘要**（与 prompt 文件对照排障）。
 
 ## 4.2 模型提供方优先级
 

@@ -4,7 +4,7 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": ["prompts/md/*.md"],
+    "assets": ["prompts/agent-prompt/*.md"],
     "watchAssets": true
   }
 }

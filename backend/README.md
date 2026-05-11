@@ -10,10 +10,13 @@ Environment variables use the `PO1MARKET_` prefix (same as the old Python stack)
 - `PO1MARKET_REQUEST_TIMEOUT_MS` — optional legacy fallback, converted to seconds for HTTP timeouts
 - `PO1MARKET_CORS_ORIGIN` — comma-separated allowlist, or omit for permissive CORS in dev
 
-Query planning LLM (uses the `openai` npm SDK → `chat.completions.create`):
+Query planning LLM (uses the official `openai` npm SDK → `chat.completions.create` + `response_format: { type: 'json_object' }`):
 
-- `PO1MARKET_DEEPSEEK_API_KEY` — if set, query planner uses DeepSeek with `baseURL` `PO1MARKET_DEEPSEEK_BASE_URL` (default `https://api.deepseek.com`), model `PO1MARKET_DEEPSEEK_MODEL` (default `deepseek-v4-flash`).
-- Otherwise, if `PO1MARKET_OPENAI_API_KEY` is set, query planner uses OpenAI Responses API (`PO1MARKET_OPENAI_BASE_URL`). Candidate scoring still uses `OpenAiClient` + OpenAI vars.
+- `PO1MARKET_DEEPSEEK_API_KEY` — if set, **query planner** uses DeepSeek-compatible base URL `PO1MARKET_DEEPSEEK_BASE_URL` (default `https://api.deepseek.com`), model `PO1MARKET_DEEPSEEK_MODEL`.
+- Otherwise, if `PO1MARKET_OPENAI_API_KEY` is set, **query planner** uses OpenAI-compatible Chat Completions at `PO1MARKET_OPENAI_BASE_URL` / `PO1MARKET_OPENAI_MODEL`.
+- **Candidate scoring** still uses `OpenAiClient` (`fetch` to OpenAI **`/responses`**), gated by `PO1MARKET_OPENAI_API_KEY` + `PO1MARKET_LLM_RERANK_ENABLED` (see `settings.ts`).
+
+System prompts for Planner and scoring are Markdown under **`backend/src/prompts/agent-prompt/`** (see `load-prompt-md.ts`, `PROMPT_MARKDOWN_SUBDIR`; copied to `dist` on `nest build` via `nest-cli.json` assets).
 
 ## Commands
 

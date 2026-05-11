@@ -1,6 +1,7 @@
 # Query LLM 增强设计（准确率优先，单阶段）
 
 > 日期：2026-05-10  
+> **2026-05-11 对齐说明（以代码为准）**：Planner 输出已由 **Zod `.strict()`** 固定为仅 `primary_query`、`variants`、`confidence`；下列 JSON 示例中的 `intent_tags` / `entities` / `time_constraints` **未进入当前实现**。Planner 调用形态为 **`chat.completions.create`**（DeepSeek/OpenAI 兼容）+ `response_format: json_object`；system 文案维护于 **`backend/src/prompts/agent-prompt/query-planning.system.md`**（参阅 `load-prompt-md.ts` / `nest-cli.json` assets）。
 > 范围：`query` 模块（`query/domain` + `query/integration`）  
 > 目标：在不引入灰度发布的前提下，用单次 LLM 提升 query 语义质量，并确保失败可无损降级到现有规则构建器。
 
@@ -58,19 +59,18 @@
 {
   "primary_query": "string",
   "variants": ["string"],
-  "intent_tags": ["official", "resolution_criteria", "time_sensitive"],
-  "entities": ["string"],
-  "time_constraints": ["string"],
   "confidence": 0.0
 }
 ```
 
-本地校验要求：
+（**未采纳的历史扩展草案**曾包含 `intent_tags` / `entities` / `time_constraints`，已不再出现在 runtime schema。）
 
-- `primary_query` 非空字符串；
-- `variants` 为字符串数组，清洗后总条数满足最小阈值（建议 >= 2）；
-- `confidence` 在 `[0, 1]`；
-- 任一字段异常均允许忽略该字段，但若核心字段不可用则 fallback。
+本地校验要求（与实现对齐）：
+
+- `primary_query`：非空白字符串；
+- `variants`：可选字符串数组；条目与 `primary_query` 一并经 `sanitize`；清洗后有效条数 **不足 2** 则整条 Planner 路径 fallback；
+- `confidence`：可选，`[0, 1]`；类型或范围错误视为 **校验失败 → fallback**（Zod strict）；
+- **禁止额外顶层键**：多余字段一律判定失败并 fallback。
 
 ## 5. 运行时流程
 
@@ -80,7 +80,7 @@
 4. 本地后处理（去重、长度限制、数量裁剪）；
 5. 产出最终 queries；
 6. 若任一步失败，fallback 到 `buildSearchQueries(...)`；
-7. 返回结果时附带最小元信息（source=`llm|legacy`, fallbackReason?）。
+7. 返回结果时附带 `planning_meta`（`query_source`、`fallback_reason` 等）。
 
 ## 6. 错误处理与降级策略（硬约束）
 

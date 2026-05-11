@@ -6,11 +6,10 @@
 
 **Architecture:** 在 `QueryService.buildQueries` 增加“LLM 优先、规则兜底”编排。新增 `QueryPlanningClient` 负责单次模型调用，`domain` 侧完成 schema 校验、后处理和 fallback 判定。保持 `RetrievalService` 与 `RecommendationsService` 对外契约不变。
 
-**Tech Stack:** NestJS, TypeScript, Jest, OpenAI Responses API, existing recommendations/query/retrieval modules.
+**Tech Stack:** NestJS, TypeScript, Jest，Planner 使用 **`openai` Chat Completions**（与 DeepSeek 兼容）；候选人打分路径可仍用 **`/responses`**。涉及 `recommendations` / `query` / `retrieval` 模块。
 
----
+**2026-05-11：** 本文档内嵌的 `QueryPlanPayload` 代码片段已过时；以 `backend/src/recommendations/types/recommendations.ts` 与 `query-planning.schema.ts`（Zod）为准（仅三键）。
 
-## 文件清单（先锁定边界）
 
 - Create: `backend/src/recommendations/query/integration/query-planning.client.ts`
 - Create: `backend/src/recommendations/query/domain/query-planning.schema.ts`

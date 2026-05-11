@@ -10,6 +10,7 @@
 
 ## 文档分层
 
+- LLM **system 提示词（Markdown）**：`backend/src/prompts/agent-prompt/`（由 `load-prompt-md.ts` 加载；改路径时须同步 `nest-cli.json` assets，见 `backend/src/recommendations/query/README.md`「维护纪律」）
 - **API 契约与错误（前后协同，Agent 必读）**：`docs/superpowers/api-contract-and-errors.md`
 - 基线现状（后端搜索主链路）：`docs/superpowers/search-current-state.md`
 - 后端迭代日志：`docs/superpowers/search-iteration-log.md`
