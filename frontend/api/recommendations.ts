@@ -55,9 +55,10 @@ export async function fetchRecommendations(
     }
 
     const data = (await res.json()) as RecommendationApiJsonResponse;
+    const planningMeta = data.planning_meta;
     const sources = data.recommended_sources ?? [];
     if (!sources.length) {
-      return { state: "no-results", results: [] };
+      return { state: "no-results", results: [], planning_meta: planningMeta };
     }
 
     const results: RecommendedSourceRow[] = sources.map((s) => {
@@ -71,7 +72,7 @@ export async function fetchRecommendations(
       };
     });
 
-    return { state: "success", results };
+    return { state: "success", results, planning_meta: planningMeta };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
     return { state: "error", results: [], errorMessage: message };
