@@ -51,6 +51,28 @@ export type QueryPreviewResponse = {
   searchQueries: string[]
 }
 
+export type QueryPlanPayload = {
+  primary_query: string
+  variants?: string[]
+  intent_tags?: string[]
+  entities?: string[]
+  time_constraints?: string[]
+  confidence?: number
+}
+
+export type QueryPlanningResult = {
+  outputText: string
+}
+
+export type QueryPlanningClientPort = {
+  enabled: boolean
+  planQueries: (input: {
+    question: string
+    description?: string
+    resolutionSource?: string
+  }) => Promise<QueryPlanningResult | null>
+}
+
 export type RecommendationService = {
   recommend: (request: RecommendationRequest) => Promise<RecommendationResponse>
 }

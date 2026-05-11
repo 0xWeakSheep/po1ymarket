@@ -1,6 +1,6 @@
 # Search 现状基线文档（持续更新）
 
-> 最后更新：2026-05-10  
+> 最后更新：2026-05-11  
 > 维护目标：作为“搜索能力演进”的单一事实源（Single Source of Truth），后续每次改动都在此文档增量更新。
 
 关联迭代记录：`docs/superpowers/search-iteration-log.md`
@@ -29,6 +29,7 @@
 ### 3.1 Query 生成：`backend/src/recommendations/query/domain/query.service.ts`
 
 - 当前策略：已拆分为独立 QueryService，对外提供 query 预览接口，内部仍采用规则生成，多数情况下产出 2~4 条 query。
+- 当前策略：已接入“LLM 优先 + 规则兜底”单阶段 query planning。LLM 仅负责规划，本地负责校验与清洗。
 - 关键行为：
   - 目录治理采用三层：`query/api`（功能接口）、`query/domain`（业务编排）、`query/integration`（提供方整合）；
   - `query-builder.ts` 已迁移至 `query/domain/query-builder.ts`，与 QueryService 共同归属业务层；
@@ -39,7 +40,7 @@
   - 移除停用词后取前 6 个 token 形成 key phrase；
   - 若存在 `resolutionSource`，追加 `"<focus> official source"`。
 - 已知限制：
-  - 缺少语义改写（同义词、实体扩展、时间表达转换）；
+  - LLM planner 目前仅接入最小 schema（`primary_query` / `variants` / `confidence`），语义标签字段尚未纳入决策；
   - 无基于首轮结果的二次改写机制；
   - 对复杂长问句和多条件问题鲁棒性一般。
 
@@ -153,3 +154,9 @@
 - Query 模块升级为文件夹治理拆分：`api/domain/integration` 三层。
 - 推荐主链路改为直接调用 `QueryService.resolveMarketContext`，移除 `market-context.resolver`。
 - SearchClient 迁移至 `retrieval/integration`，与查询层目录治理保持一致。
+
+### 2026-05-11
+
+- Query 层新增 `query-planning.schema` 与 `query-planning.spec`，实现 JSON 解析、schema 校验与 query sanitize。
+- QueryService 升级为异步 `buildQueries`：优先调用 `QueryPlanningClient`，异常时自动 fallback 到 `query-builder`。
+- QueryPlanningClient 完成首版接入（OpenAI `/responses` 单次调用 + 超时保护 + 空输出兜底）。

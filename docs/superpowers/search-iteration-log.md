@@ -32,6 +32,39 @@
 
 ## 3. 迭代记录
 
+### 2026-05-11 Query LLM Planner 第一阶段接入（无灰度）
+
+- **背景**：Query 模块已完成服务化拆分，但查询构建仍以规则为主。需要在不改变主链路契约前提下引入单阶段 LLM 规划，并确保失败可无损降级。
+- **改动范围**：
+  - `backend/src/recommendations/query/domain/query-planning.schema.ts`
+  - `backend/src/recommendations/query/domain/query-planning.spec.ts`
+  - `backend/src/recommendations/query/integration/query-planning.client.ts`
+  - `backend/src/recommendations/query/domain/query.service.ts`
+  - `backend/src/recommendations/query/domain/query.service.spec.ts`
+  - `backend/src/recommendations/recommendations.module.ts`
+  - `backend/src/recommendations/types/recommendations.ts`
+  - `backend/src/recommendations/query/README.md`
+  - `docs/superpowers/search-current-state.md`
+- **实现要点**：
+  - 增加 `parseQueryPlanPayload` 与 `sanitizePlannedQueries`，将 LLM 输出统一为可控本地结构；
+  - 新增 `QueryPlanningClient`，单次调用 OpenAI `/responses`，并在集成层内处理 timeout / 非 2xx / 空输出；
+  - `QueryService.buildQueries` 改为异步编排：LLM 成功则返回清洗后结果，失败统一回退 `buildSearchQueries`；
+  - 回退条件覆盖 invalid JSON、schema violation、低产出（<2 条）等典型失败场景。
+- **验证方式**：
+  - `npm run test -- query/domain/query-planning.spec.ts query/domain/query.service.spec.ts query/domain/query-builder.spec.ts`
+  - `npm test`
+- **结果**：
+  - Query LLM planner 最小可用路径已打通；
+  - 回退链路保持稳定，主推荐接口契约未变；
+  - 查询域相关测试与全量后端测试均通过。
+- **风险与回滚**：
+  - 风险：planner prompt 与 schema 仍较简化，复杂语义场景命中质量可能波动；
+  - 回滚：关闭 `QueryPlanningClient`（无 key 或返回空）即可自动回到 legacy query-builder。
+- **下一步**：
+  - 在 `QueryPreviewResponse` / 日志中补充 `source` 与 `fallback_reason` 观测字段；
+  - 增加 `/api/v1/search/queries` 的 e2e 覆盖；
+  - 根据样本结果迭代 planner prompt 与字段约束。
+
 ### 2026-05-10 Query 模块服务化拆分（代码 + 接口）
 
 - **背景**：查询构建逻辑此前耦合在 `MarketContextResolverService` 与 `query-builder` 调用点中，缺少独立服务边界和可单独调用接口，不利于后续 Agent 编排与调试。

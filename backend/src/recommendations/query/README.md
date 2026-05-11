@@ -67,8 +67,24 @@
 1. `QueryController` 接收请求并做基础参数校验
 2. `QueryService.resolveQueries` 执行业务编排
 3. `QueryMarketProvider.resolveQueryMarketInput` 获取标准化的 market 输入
-4. `QueryService.buildQueries` 调用 `query-builder` 生成查询词
+4. `QueryService.buildQueries` 优先调用 `QueryPlanningClient`（单次 LLM）
+5. `query-planning.schema` 执行 JSON 解析与本地 sanitize
+6. 任意异常（timeout/provider error/invalid json/schema violation/low yield）自动回退 `query-builder`
 5. 返回 `QueryPreviewResponse`
+
+## 4.1 LLM Planner 输出约束（当前）
+
+`QueryPlanningClient` 期望 `output_text` 为 JSON，核心字段：
+
+- `primary_query`: string（必填）
+- `variants`: string[]（可选）
+- `confidence`: number（可选，0~1）
+
+本地始终进行：
+
+- 结构校验（核心字段不合法即 fallback）
+- 文本标准化与去重（`sanitizePlannedQueries`）
+- 数量裁剪（最多 6 条，少于 2 条则 fallback）
 
 ## 5. 与推荐主链路关系
 
