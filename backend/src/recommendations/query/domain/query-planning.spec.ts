@@ -18,6 +18,31 @@ describe('query-planning.schema', () => {
     expect(() => parseQueryPlanPayload('not-json')).toThrow('invalid_json')
   })
 
+  it('throws schema_violation when primary_query is missing', () => {
+    expect(() =>
+      parseQueryPlanPayload(JSON.stringify({ variants: ['a'] }))
+    ).toThrow('schema_violation')
+  })
+
+  it('throws schema_violation when extra keys are present (strict)', () => {
+    expect(() =>
+      parseQueryPlanPayload(
+        JSON.stringify({
+          primary_query: 'valid query here',
+          hint: 'not allowed'
+        })
+      )
+    ).toThrow('schema_violation')
+  })
+
+  it('throws schema_violation when confidence is out of range', () => {
+    expect(() =>
+      parseQueryPlanPayload(
+        JSON.stringify({ primary_query: 'ok', confidence: 1.5 })
+      )
+    ).toThrow('schema_violation')
+  })
+
   it('returns empty when all queries are invalid after sanitize', () => {
     const sanitized = sanitizePlannedQueries({
       primary_query: ' ',

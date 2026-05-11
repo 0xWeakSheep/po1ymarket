@@ -11,7 +11,9 @@ import type {
 } from '../../types/recommendations'
 import { buildSearchQueries } from './query-builder'
 import {
+  formatQueryPlanZodIssues,
   parseQueryPlanPayload,
+  QueryPlanPayloadParseError,
   sanitizePlannedQueries
 } from './query-planning.schema'
 import { QueryMarketProvider } from '../integration/query-market.provider'
@@ -125,12 +127,20 @@ export class QueryService {
           ...(this.settings.queryDebugEnabled ? { message: '已采用 LLM 生成的检索词' } : {})
         }
       }
-    } catch {
+    } catch (e) {
       const base = buildFallback('payload_parse_failed')
       if (this.settings.queryDebugEnabled) {
         const slice = call.outputText.trim().slice(0, 400)
-        base.planningMeta.debug_detail =
-          slice.length > 0 ? `JSON 解析失败；正文前缀：${slice}` : 'JSON 解析失败且无正文前缀'
+        const prefix =
+          slice.length > 0 ? `正文前缀：${slice}` : '无正文前缀'
+        if (e instanceof QueryPlanPayloadParseError) {
+          base.planningMeta.debug_detail =
+            e.code === 'invalid_json'
+              ? `JSON.parse 失败；${prefix}`
+              : `Zod 校验失败：${formatQueryPlanZodIssues(e.zodIssues)}；${prefix}`
+        } else {
+          base.planningMeta.debug_detail = `解析异常；${prefix}`
+        }
       }
       return base
     }

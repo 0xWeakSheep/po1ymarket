@@ -1,12 +1,44 @@
 /**
- * 查询规划模式
- * 
- * 功能：
- * 1. 解析查询规划模式
- * 2. 返回查询规划模式
+ * Planner（Agent）返回 JSON 的解析与校验：先用 JSON.parse，再用 Zod 校验契约。
  */
 
+import { z } from 'zod'
+
 import type { QueryPlanPayload } from '../../types/recommendations'
+
+/** 与 Planner system prompt / `QueryPlanPayload` 对齐；`.strict()` 拒绝多余字段，避免静默吞掉畸形结构。 */
+export const queryPlanPayloadSchema = z
+  .object({
+    primary_query: z
+      .string()
+      .refine((s) => /\S/.test(s), '必须包含非空白字符'),
+    variants: z.array(z.string()).max(32).optional(),
+    intent_tags: z.array(z.string()).max(64).optional(),
+    entities: z.array(z.string()).max(64).optional(),
+    time_constraints: z.array(z.string()).max(16).optional(),
+    confidence: z.number().min(0).max(1).optional()
+  })
+  .strict()
+
+export class QueryPlanPayloadParseError extends Error {
+  constructor (
+    readonly code: 'invalid_json' | 'schema_violation',
+    readonly zodIssues?: z.ZodIssue[]
+  ) {
+    super(code)
+    this.name = 'QueryPlanPayloadParseError'
+  }
+}
+
+export function formatQueryPlanZodIssues (issues: z.ZodIssue[] | undefined): string {
+  if (!issues?.length) return '未知校验错误'
+  return issues
+    .map((i) => {
+      const p = i.path.length ? i.path.join('.') : '(root)'
+      return `${p}: ${i.message}`
+    })
+    .join('; ')
+}
 
 export function parseQueryPlanPayload (raw: string): QueryPlanPayload {
   let parsed: unknown
@@ -14,29 +46,20 @@ export function parseQueryPlanPayload (raw: string): QueryPlanPayload {
   try {
     parsed = JSON.parse(raw)
   } catch {
-    throw new Error('invalid_json')
+    throw new QueryPlanPayloadParseError('invalid_json')
   }
 
-  if (!parsed || typeof parsed !== 'object') {
-    throw new Error('schema_violation')
+  const result = queryPlanPayloadSchema.safeParse(parsed)
+  if (!result.success) {
+    throw new QueryPlanPayloadParseError('schema_violation', result.error.issues)
   }
 
-  const payload = parsed as QueryPlanPayload
-
-  if (typeof payload.primary_query !== 'string' || !payload.primary_query.trim()) {
-    throw new Error('schema_violation')
-  }
-
-  if (payload.confidence !== undefined && (typeof payload.confidence !== 'number' || payload.confidence < 0 || payload.confidence > 1)) {
-    throw new Error('schema_violation')
-  }
-
-  return payload
+  return result.data
 }
 
 /**
  * 清洗查询规划模式
- * 
+ *
  * 功能：
  * 1. 清洗查询规划模式
  * 2. 返回清洗后的查询规划模式
