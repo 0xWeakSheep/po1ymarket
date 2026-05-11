@@ -10,6 +10,11 @@ Environment variables use the `PO1MARKET_` prefix (same as the old Python stack)
 - `PO1MARKET_REQUEST_TIMEOUT_MS` — optional legacy fallback, converted to seconds for HTTP timeouts
 - `PO1MARKET_CORS_ORIGIN` — comma-separated allowlist, or omit for permissive CORS in dev
 
+Query planning LLM (uses the `openai` npm SDK → `chat.completions.create`):
+
+- `PO1MARKET_DEEPSEEK_API_KEY` — if set, query planner uses DeepSeek with `baseURL` `PO1MARKET_DEEPSEEK_BASE_URL` (default `https://api.deepseek.com`), model `PO1MARKET_DEEPSEEK_MODEL` (default `deepseek-v4-flash`).
+- Otherwise, if `PO1MARKET_OPENAI_API_KEY` is set, query planner uses OpenAI Responses API (`PO1MARKET_OPENAI_BASE_URL`). Candidate scoring still uses `OpenAiClient` + OpenAI vars.
+
 ## Commands
 
 ```bash

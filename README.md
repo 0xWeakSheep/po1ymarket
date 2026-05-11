@@ -7,7 +7,7 @@ Applications in this repo:
 
 ## Documentation
 
-- **`docs/superpowers/README.md`** — 技术文档治理入口（前后端分治）
+- **`docs/superpowers/README.md`** — 技术文档治理入口（前后端分治；**API 契约与错误见 [`api-contract-and-errors.md`](./superpowers/api-contract-and-errors.md)**）
 - **`docs/superpowers/search-current-state.md`** — 后端搜索现状基线
 - **`docs/superpowers/search-iteration-log.md`** — 后端搜索迭代记录
 - **`docs/superpowers/frontend-iteration-log.md`** — 前端迭代记录
@@ -16,6 +16,20 @@ Applications in this repo:
 
 - **后端 (`backend/`)**：预测市场解析、来源推荐与返回 JSON 契约。
 - **前端 (`frontend/`)**：表单、调用上述 API、展示结果；不内置业务打分或 mock 结果集。
+
+## 本地一键开发（可选）
+
+在项目根目录装依赖并联起 **Nest（默认读 `backend/.env` 里的 `PORT`）** 与 **Next**：
+
+```bash
+npm install
+npm run install:all
+npm run dev
+```
+
+等价于两个终端分别 `cd backend && npm run start:dev` 与 `cd frontend && npm run dev`。关进程时 `Ctrl+C` 会 `-k` 尽量同时结束两端。
+
+仅用一端时：`npm run dev:backend` / `npm run dev:frontend`。日常更省事的做法是：**前端走 `/po1ymarket` 代理 + `BACKEND_PROXY_TARGET`**，避免浏览器直连 Nest 时再配 CORS（见 `frontend/.env.example`）。
 
 ## API (Nest)
 

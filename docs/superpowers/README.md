@@ -1,6 +1,6 @@
 # Superpowers 文档治理（前后端分治）
 
-> 最后更新：2026-05-10
+> 最后更新：2026-05-11
 
 ## 目标
 
@@ -10,6 +10,7 @@
 
 ## 文档分层
 
+- **API 契约与错误（前后协同，Agent 必读）**：`docs/superpowers/api-contract-and-errors.md`
 - 基线现状（后端搜索主链路）：`docs/superpowers/search-current-state.md`
 - 后端迭代日志：`docs/superpowers/search-iteration-log.md`
 - 前端迭代日志：`docs/superpowers/frontend-iteration-log.md`
@@ -17,13 +18,18 @@
 
 ## 分治规则
 
+- **API 契约、响应字段或错误语义**（含 HTTP 与非 200 行为、HTTP 200 下的 `planning_meta` / 降级原因等）改动：
+  - 必更：`api-contract-and-errors.md`（按该文件内清单同步附录与自检项）
+  - 必更：对应后端模块 README（如 `backend/src/recommendations/query/README.md`）
+  - 必更：`search-iteration-log.md`；涉及 UI 时再必更：`frontend-iteration-log.md`
 - 后端搜索逻辑（query/recall/scoring/agent 接口）改动：
   - 必更：`search-current-state.md`（若现状发生变化）
   - 必更：`search-iteration-log.md`
 - 前端控制台或展示层改动：
   - 必更：`frontend-iteration-log.md`
 - 跨端改动：
-  - 前后端日志都要追加记录，并在记录中互相引用。
+  - 前后端日志都要追加记录，并在记录中互相引用；
+  - **同时**核对 `api-contract-and-errors.md` 与前端 `types`/API 客户端是否仍一致。
 
 ## 记录最小模板
 
