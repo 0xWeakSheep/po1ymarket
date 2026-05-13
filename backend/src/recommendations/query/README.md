@@ -1,6 +1,6 @@
 # Query 模块接口文档（临时）
 
-> **维护纪律**：改 Planner 行为、提示词或对外契约时，先对照 **`integration/query-planning.client.ts`**、**`prompts/load-prompt-md.ts`**（及 `PROMPT_MARKDOWN_SUBDIR`）、**`nest-cli.json` 的 `assets`**、**`domain/query-planning.schema.ts`**，再改本文与 `docs/superpowers/*`、`task-board.md`，避免文档与运行时路径脱节。  
+> **维护纪律**：改 Planner 行为、提示词或对外契约时，先对照 **`integration/query-planning.client.ts`**、**`prompts/load-prompt-md.ts`**（及 `PROMPT_MARKDOWN_SUBDIR`）、**`nest-cli.json` 的 `assets`**、**`domain/query-planning.schema.ts`**，再改本文与 `docs/superpowers/*`、`task-board.md`，避免文档与运行时路径脱节。改 **候选人打分** 时另对照 **`../scoring.service.ts`**、**`../clients/openai.client.ts`**、**`candidate-scoring.system.md`**、**`../types/recommendations.ts`**（`LlmClient` / `LlmScoreResult`），并同步 §6.1 与 `backend/README.md` 摘要。  
 > **前后端契约与错误（Agent 必读）**：`docs/superpowers/api-contract-and-errors.md`。凡改路由、响应体或 Planner 诊断字段，必须与该文档及本文同步更新。
 
 ## 1. 模块职责
@@ -121,7 +121,7 @@
 | 1 | `PO1MARKET_DEEPSEEK_API_KEY` 已设置 | `baseURL` = `PO1MARKET_DEEPSEEK_BASE_URL`（默认 `https://api.deepseek.com`），模型 `PO1MARKET_DEEPSEEK_MODEL` |
 | 2 | 仅 `PO1MARKET_OPENAI_API_KEY` 已设置 | `baseURL` = `PO1MARKET_OPENAI_BASE_URL`（默认 `https://api.openai.com/v1`），模型 `PO1MARKET_OPENAI_MODEL` |
 
-两处均走同一套 Chat Completions + `response_format: { type: 'json_object' }`。候选人打分仍只用 `OpenAiClient`（仍为 `fetch` 调 `/responses`，与 query 层独立）。
+两处均走同一套 Chat Completions + `response_format: { type: 'json_object' }`。**候选人打分**同样走 `openai` SDK 的 **`chat.completions.create`**（`OpenAiClient`，与 Planner 同优先级：DeepSeek Key 优先，否则 OpenAI），**不再**使用 `/responses` 或独立 `fetch` 路径。
 
 ## 5. 与推荐主链路关系
 - `RecommendationsService` 通过 `QueryService.resolveMarketContext` 获取市场上下文与搜索查询词
@@ -135,5 +135,26 @@
 - 标准化请求参数（默认值与边界校验）
 - 调用 `query` 模块产出 `MarketContext`
 - 调用 `search` 候选召回
-- 调用 `scoring` 完成打分与 stale 过滤
+- 调用 `scoring` 完成打分；**响应里剔除** `stale === true` 的候选后再截断 `max_results`
 - 组装 `recommended_sources` 响应
+
+### 6.1 Scoring / Rerank（与代码对齐，便于改 prompt 或阈值时自查）
+
+实现入口：`backend/src/recommendations/scoring.service.ts`；LLM 客户端：`backend/src/recommendations/clients/openai.client.ts`；system 文案：`backend/src/prompts/agent-prompt/candidate-scoring.system.md`。
+
+**单条候选处理顺序（当前）**
+
+1. **启发式**：`relevanceScore`（市场/候选 token 交集比 + `sourceType` 加减分）、`freshnessScore`（无 `publishedAt` 时 official≈0.55 / 其它≈0.4；有日期则 `exp(-ageDays/inferUrgency)`，`inferUrgency` 见 `query/domain/query-builder.ts`）、`aiScore` 默认 0.5。
+2. 算 **`totalScore`**：`relevance * 0.45 + freshness * 0.35 + ai * 0.20`；若 `stale` 再 **`total *= 0.4`**。
+3. **`getStaleness`**：official 不标 stale；非 official 相关度过低或「发稿天数 > inferUrgency×3」则 stale（含 `staleReason`）。
+4. **`PO1MARKET_LLM_RERANK_ENABLED` 且已配置 Key** 时，对每条候选 **串行** 调 `OpenAiClient.scoreCandidate`：user JSON 含 `market_*`、`candidate_*`、`published_at`、`candidate_source_type`（`news` | `social` | `official`）；成功则 **覆盖** relevance / freshness / `ai_score` 与 `rationale`，并 **重算** total 与 stale。
+5. 全量按 `totalScore` 降序排序。
+
+**`POST /api/v1/recommendations` 响应注意点**
+
+- `recommended_sources` 里当前 **`score` 字段恒为 `0`**（占位），真实排序已由上述流程完成；调试可看服务端日志或后续若开放「调试字段」再透出。
+- `planning_meta` 来自检索阶段解析的 `MarketContext`，与 query 预览接口同形。
+
+**演进路线图（非代码契约）**：`docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`（启发式增强、并发/batch rerank、stale 改造、authority 维度等）。
+
+**维护时**：改打分行为请同步本文、`backend/README.md`（若有摘要）、`task-board.md` 中与 scoring 相关的进度描述，以及 `candidate-scoring.system.md` 与 `LlmScoreResult` 类型（`types/recommendations.ts`）。

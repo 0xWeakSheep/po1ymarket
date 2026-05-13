@@ -7,7 +7,8 @@ Applications in this repo:
 
 ## Documentation
 
-- **`backend/src/recommendations/query/README.md`** — Query 预览、`planning_meta`、`agent-prompt/*.md` 与代码对齐说明
+- **`backend/src/recommendations/query/README.md`** — Query 预览、`planning_meta`、`agent-prompt/*.md`；**§6.1** 为当前 **Scoring / Rerank** 与主链路对齐说明
+- **`docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`** — 打分 / rerank 演进路线（与 §6.1 对照）
 - **`docs/superpowers/search-current-state.md`** — 后端搜索现状基线
 - **`docs/superpowers/search-iteration-log.md`** — 后端搜索迭代记录
 - **`docs/superpowers/frontend-iteration-log.md`** — 前端迭代记录

@@ -10,13 +10,21 @@ Environment variables use the `PO1MARKET_` prefix (same as the old Python stack)
 - `PO1MARKET_REQUEST_TIMEOUT_MS` — optional legacy fallback, converted to seconds for HTTP timeouts
 - `PO1MARKET_CORS_ORIGIN` — comma-separated allowlist, or omit for permissive CORS in dev
 
-Query planning LLM (uses the official `openai` npm SDK → `chat.completions.create` + `response_format: { type: 'json_object' }`):
+Query planning and candidate LLM scoring (official `openai` npm SDK → `chat.completions.create` + `response_format: { type: 'json_object' }`):
 
-- `PO1MARKET_DEEPSEEK_API_KEY` — if set, **query planner** uses DeepSeek-compatible base URL `PO1MARKET_DEEPSEEK_BASE_URL` (default `https://api.deepseek.com`), model `PO1MARKET_DEEPSEEK_MODEL`.
-- Otherwise, if `PO1MARKET_OPENAI_API_KEY` is set, **query planner** uses OpenAI-compatible Chat Completions at `PO1MARKET_OPENAI_BASE_URL` / `PO1MARKET_OPENAI_MODEL`.
-- **Candidate scoring** still uses `OpenAiClient` (`fetch` to OpenAI **`/responses`**), gated by `PO1MARKET_OPENAI_API_KEY` + `PO1MARKET_LLM_RERANK_ENABLED` (see `settings.ts`).
+- `PO1MARKET_DEEPSEEK_API_KEY` — if set, **query planner** and **`OpenAiClient` scoring** use DeepSeek-compatible base URL `PO1MARKET_DEEPSEEK_BASE_URL` (default `https://api.deepseek.com`), model `PO1MARKET_DEEPSEEK_MODEL`.
+- Otherwise, if `PO1MARKET_OPENAI_API_KEY` is set, both use OpenAI-compatible Chat Completions at `PO1MARKET_OPENAI_BASE_URL` / `PO1MARKET_OPENAI_MODEL`.
+- **Candidate scoring** is gated by `PO1MARKET_LLM_RERANK_ENABLED` (default on; set to `false` to disable) and requires at least one of the API keys above (see `settings.ts`).
 
 System prompts for Planner and scoring are Markdown under **`backend/src/prompts/agent-prompt/`** (see `load-prompt-md.ts`, `PROMPT_MARKDOWN_SUBDIR`; copied to `dist` on `nest build` via `nest-cli.json` assets).
+
+### Scoring & rerank (short)
+
+- **Heuristic first** (`scoring.service.ts`): relevance from token overlap + `sourceType` bumps; freshness from age + `inferUrgency(question)`; default `aiScore` 0.5; **weighted total** `0.45 / 0.35 / 0.20`; if **stale**, total **× 0.4**; then sort by total.
+- **Optional LLM** (`OpenAiClient`): same SDK path as planner — **`chat.completions.create`** + `response_format: { type: 'json_object' }`, **one request per candidate** (sequential today). User payload includes `candidate_source_type` for prompt alignment with freshness defaults.
+- **Response**: `RecommendationsService` **drops** candidates with `stale === true` before `max_results`; `recommended_sources[].score` is currently **always `0`** (placeholder).
+
+Collaboration detail: `backend/src/recommendations/query/README.md` §6.1; roadmap: `docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`.
 
 ## Commands
 

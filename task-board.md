@@ -52,9 +52,11 @@
   - Google News
   - Reddit
 - 已有基础打分：
-  - relevance
-  - freshness
-  - optional AI rerank
+  - 启发式 relevance / freshness（`inferUrgency`、按 `sourceType` 微调；无日期时 official / 其它默认新鲜分）
+  - 加权总分 `0.45 / 0.35 / 0.20`；`stale` 时总分再 ×0.4；**响应中剔除** `stale` 候选
+  - 可选 **逐条** LLM rerank（`OpenAiClient` + `candidate-scoring.system.md`，与 Planner 同为 Chat Completions + `json_object`；user 含 `candidate_source_type`）
+  - 注意：`recommended_sources[].score` 当前仍为占位 **0**（排序已在服务端完成）
+- 精排演进路线图：`docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`
 
 ### 下一步
 
@@ -87,6 +89,8 @@
 - `/backend/src/recommendations/retrieval/domain/candidate-retriever.service.ts`
 - `/backend/src/recommendations/retrieval/integration/search.client.ts`
 - `/backend/src/recommendations/scoring.service.ts`
+- `/backend/src/recommendations/clients/openai.client.ts`
+- `/docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`
 - `/backend/src/recommendations/clients/polymarket.client.ts`
 - `/docs/superpowers/api-contract-and-errors.md`（`planning_meta` 与降级语义）
 - `/docs/superpowers/search-current-state.md`（搜索现状基线与演进记录）

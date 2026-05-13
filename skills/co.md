@@ -24,7 +24,7 @@
 3. 接口支持两种输入方式：
    - `market_id`
    - `market_question`
-4. 当前返回结果核心是 `recommended_sources`，也就是推荐链接列表。
+4. 当前返回结果核心是 `recommended_sources`（链接列表）；其中 **`score` 字段当前为占位（恒为 0）**，排序已在服务端完成，agent 应按返回顺序理解优先级。
 5. skill 的目标不是替代后端排序，而是让 agent 更好地调用、消费和继续利用这些结果。
 
 建议先读这些文件：
@@ -32,7 +32,7 @@
 1. `/README.md`
 2. `/fastcontribute.md`
 3. `/backend/src/recommendations/recommendations.service.ts`
-4. `/backend/src/recommendations/query-builder.ts`
+4. `/backend/src/recommendations/query/README.md`
 5. `/frontend/components/dashboard/QueryConsole.tsx`
 
 如果这 5 个文件还没看，不要直接开始写 skill。

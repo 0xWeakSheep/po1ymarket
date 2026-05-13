@@ -50,8 +50,8 @@
 关键文件：
 
 - `backend/src/recommendations/recommendations.service.ts`
-- `backend/src/recommendations/query-builder.ts`
-- `backend/src/recommendations/clients/search.client.ts`
+- `backend/src/recommendations/query/domain/query-builder.ts`
+- `backend/src/recommendations/retrieval/integration/search.client.ts`
 - `backend/src/recommendations/scoring.service.ts`
 - `backend/src/recommendations/clients/polymarket.client.ts`
 
@@ -98,7 +98,7 @@
 
 可以做的事：
 
-- 改进 `query-builder`，让 query 更稳、更少噪音
+- 改进 `query/domain/query-builder.ts`，让 query 更稳、更少噪音
 - 增加新的候选源，而不只是 Google News / Reddit
 - 优化打分逻辑，减少“相关但没用”的结果
 - 处理时间敏感盘口，提升 freshness 判断
@@ -106,8 +106,8 @@
 
 适合先读：
 
-- `backend/src/recommendations/query-builder.ts`
-- `backend/src/recommendations/clients/search.client.ts`
+- `backend/src/recommendations/query/domain/query-builder.ts`
+- `backend/src/recommendations/retrieval/integration/search.client.ts`
 - `backend/src/recommendations/scoring.service.ts`
 
 ### B. 使用侧 / skill / agent workflow
@@ -163,8 +163,8 @@ npm run dev
 
 1. `README.md`
 2. `backend/src/recommendations/recommendations.service.ts`
-3. `backend/src/recommendations/query-builder.ts`
-4. `backend/src/recommendations/clients/search.client.ts`
+3. `backend/src/recommendations/query/domain/query-builder.ts`
+4. `backend/src/recommendations/retrieval/integration/search.client.ts`
 5. `backend/src/recommendations/scoring.service.ts`
 6. `frontend/components/dashboard/QueryConsole.tsx`
 
