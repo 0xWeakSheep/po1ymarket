@@ -122,5 +122,6 @@ export type LlmClient = {
     candidateTitle: string
     candidateSnippet?: string
     publishedAt?: string
+    sourceType: SourceType
   }) => Promise<LlmScoreResult | null>
 }

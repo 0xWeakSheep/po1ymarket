@@ -16,7 +16,7 @@ export type Settings = {
   openaiApiKey?: string
   openaiBaseUrl: string
   openaiModel: string
-  /** Query planning only: DeepSeek Chat Completions (OpenAI-compatible). */
+  /** DeepSeek Chat Completions (OpenAI-compatible)：Query planning 与候选人 LLM 打分均优先使用。 */
   deepseekApiKey?: string
   deepseekBaseUrl: string
   deepseekModel: string

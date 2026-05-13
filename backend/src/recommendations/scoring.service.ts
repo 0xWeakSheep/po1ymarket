@@ -40,7 +40,8 @@ export class ScoringService {
         marketDescription: market.description,
         candidateTitle: candidate.title,
         candidateSnippet: candidate.snippet,
-        publishedAt: candidate.publishedAt?.toISOString()
+        publishedAt: candidate.publishedAt?.toISOString(),
+        sourceType: candidate.sourceType
       })
 
       if (llmResult) {
