@@ -37,4 +37,25 @@ describe("fetchRecommendations", () => {
       }),
     );
   });
+
+  it("when using default proxy prefix, 404 responses include setup guidance", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: async () => ({ message: "Not Found" }),
+      }),
+    );
+
+    const result = await fetchRecommendations(
+      { mode: "market-id", marketId: "540816" },
+      "/po1ymarket",
+    );
+
+    expect(result.state).toBe("error");
+    if (result.state !== "error") throw new Error("expected error");
+    expect(result.errorMessage).toContain("BACKEND_PROXY_TARGET");
+    expect(result.errorMessage).toContain("Not Found");
+  });
 });

@@ -10,6 +10,7 @@ import {
   EXAMPLE_MARKET_QUESTION,
   EXAMPLE_RESOLUTION_SOURCE,
 } from "@/constants/examples";
+import { describeQuerySource, formatFallbackReasonLabel } from "@/constants/planningMeta";
 import type { QueryMode, QueryPlanningMetaWire, RecommendationsRunState } from "@/types/recommendation";
 import { formatScore, shortenUrl } from "@/utils/display";
 
@@ -37,11 +38,13 @@ function PlanningMetaNote({ meta }: { meta: QueryPlanningMetaWire }) {
       className={`mb-4 rounded-lg border px-3 py-2.5 text-left text-xs leading-relaxed text-slate-200 ${frameClass}`}
       role="status"
     >
-      <p className="font-medium text-slate-100">Query Planner</p>
+      <p className="font-medium text-slate-100">查询规划（Planner）</p>
       <ul className="mt-1.5 list-inside list-disc space-y-0.5 text-slate-300/95">
         <li>已配置 Planner：{meta.planner_configured ? "是" : "否"}</li>
-        <li>检索词来源：{meta.query_source === "llm" ? "LLM" : "规则"}</li>
-        {meta.fallback_reason ? <li>回退原因：{meta.fallback_reason}</li> : null}
+        <li>检索词来源：{describeQuerySource(meta)}</li>
+        {meta.fallback_reason ? (
+          <li>回退原因：{formatFallbackReasonLabel(meta.fallback_reason) ?? meta.fallback_reason}</li>
+        ) : null}
         {meta.upstream_http_status != null ? (
           <li>
             上游 HTTP：{meta.upstream_http_status}
@@ -67,27 +70,37 @@ type ResultsPanelProps = {
 
 function ResultsPanel({ hasSearched, isLoading, response }: ResultsPanelProps) {
   return (
-    <div className="flex flex-col h-full" aria-label="Results" role="region" aria-live="polite">
-      <PixelLabel>Output</PixelLabel>
+    <div className="flex flex-col h-full" aria-label="输出" role="region" aria-live="polite">
+      <PixelLabel>输出</PixelLabel>
       <div className="mt-4 flex-1 overflow-auto min-h-0">
         {!hasSearched ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-sm text-slate-500">
-              Run a market query to preview recommended sources.
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-2 text-center">
+            <p className="text-sm text-slate-400">
+              在左侧填写市场 ID 或自定义市场描述，点击「查找来源」即可预览推荐来源。
+            </p>
+            <p className="max-w-md text-xs leading-relaxed text-slate-500">
+              联调 Nest：在 <span className="font-mono text-slate-400">frontend/.env.local</span>{" "}
+              配置 <span className="font-mono text-slate-400">BACKEND_PROXY_TARGET</span>{" "}
+              指向后端（如 <span className="font-mono text-slate-400">http://127.0.0.1:3001</span>
+              ）后重启 <span className="font-mono text-slate-400">npm run dev</span>
+              ；亦可设置 <span className="font-mono text-slate-400">NEXT_PUBLIC_API_BASE_URL</span>{" "}
+              直连。详见仓库内 <span className="font-mono text-slate-400">frontend/README.md</span>。
             </p>
           </div>
         ) : isLoading ? (
           <div className="flex h-full flex-col items-center justify-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-violet-400/30 border-t-violet-400" />
-            <p className="mt-3 text-sm text-slate-400">Searching…</p>
+            <p className="mt-3 text-sm text-slate-400">正在检索…</p>
           </div>
         ) : response.state === "error" ? (
-          <p className="text-sm text-rose-300">{response.errorMessage ?? "Something went wrong."}</p>
+          <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-rose-300">
+            {response.errorMessage ?? "发生未知错误。"}
+          </pre>
         ) : (
           <>
             {response.planning_meta ? <PlanningMetaNote meta={response.planning_meta} /> : null}
             {response.state === "no-results" ? (
-              <p className="text-sm text-slate-400">No sources found. Try a richer query.</p>
+              <p className="text-sm text-slate-400">暂无候选来源，可尝试更具体的市场描述或更换示例。</p>
             ) : (
               <div className="space-y-3">
                 {response.results.map((item) => (
@@ -170,7 +183,7 @@ export function QueryConsole() {
         <div className="relative z-10 flex h-full flex-col">
           <div className="mb-5 flex flex-wrap items-center justify-start gap-3">
             <PixelLabel>
-              <span id={`${regionId}-title`}>Query Console</span>
+              <span id={`${regionId}-title`}>查询工作台</span>
             </PixelLabel>
           </div>
 
@@ -180,7 +193,7 @@ export function QueryConsole() {
             <div
               className="flex flex-wrap gap-2 rounded-full border border-white/10 bg-black/25 p-1"
               role="group"
-              aria-label="Query mode"
+              aria-label="查询模式"
             >
               <button
                 type="button"
@@ -191,7 +204,7 @@ export function QueryConsole() {
                     : "text-slate-200 hover:bg-white/10"
                 }`}
               >
-                Use Market ID
+                使用市场 ID
               </button>
               <button
                 type="button"
@@ -202,11 +215,11 @@ export function QueryConsole() {
                     : "text-slate-200 hover:bg-white/10"
                 }`}
               >
-                Use Custom Market
+                使用自定义市场
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Example presets">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="示例预设">
               <button
                 type="button"
                 onClick={() => {
@@ -215,7 +228,7 @@ export function QueryConsole() {
                 }}
                 className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
               >
-                Example1
+                示例：市场 ID
               </button>
               <button
                 type="button"
@@ -225,7 +238,7 @@ export function QueryConsole() {
                 }}
                 className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
               >
-                Example2
+                示例：自定义市场
               </button>
             </div>
           </div>
@@ -238,10 +251,10 @@ export function QueryConsole() {
               >
                 <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400"
                 >
-                  Market ID
+                  市场 ID
                 </span>
                 <input
-                  aria-label="Market ID"
+                  aria-label="市场 ID"
                   value={marketId}
                   onChange={(event) => setMarketId(event.target.value)}
                   className={inputGlowClass}
@@ -252,17 +265,17 @@ export function QueryConsole() {
               >
                 <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400"
                 >
-                  Market Question
+                  市场问题
                 </span>
                 <textarea
-                  aria-label="Market Question"
+                  aria-label="市场问题描述"
                   value={marketQuestion}
                   onChange={(event) => setMarketQuestion(event.target.value)}
                   className={`${inputGlowClass} min-h-0 flex-1 resize-y`}
                 />
                 <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-slate-500"
                 >
-                  Resolution hint · {shortenUrl(EXAMPLE_RESOLUTION_SOURCE)}
+                  裁决来源示例 · {shortenUrl(EXAMPLE_RESOLUTION_SOURCE)}
                 </p>
               </label>
             )}
@@ -275,10 +288,10 @@ export function QueryConsole() {
               type="button"
               disabled={!canSubmit}
               onClick={() => void handleSubmit()}
-              title={!hasInput ? "Enter a market ID or question first" : undefined}
+              title={!hasInput ? "请先填写市场 ID 或市场问题" : undefined}
               className={`w-full rounded-full bg-gradient-to-r from-sky-400 to-violet-500 px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-[0_14px_48px_rgba(56,189,248,0.35),0_0_40px_rgba(139,92,246,0.2)] transition duration-200 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:brightness-100 sm:w-auto ${btnBase}`}
             >
-              {isLoading ? "Searching…" : "Find Sources"}
+              {isLoading ? "正在检索…" : "查找来源"}
             </button>
           </div>
         </div>

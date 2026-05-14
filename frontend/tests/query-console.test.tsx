@@ -28,8 +28,8 @@ describe("QueryConsole", () => {
   it("renders both query modes", () => {
     render(<QueryConsole />);
 
-    expect(screen.getByText(/use market id/i)).toBeInTheDocument();
-    expect(screen.getByText(/use custom market/i)).toBeInTheDocument();
+    expect(screen.getByText(/使用市场 ID/)).toBeInTheDocument();
+    expect(screen.getByText(/使用自定义市场/)).toBeInTheDocument();
   });
 
   it("runs Example2 preset and shows ranked output from the API", async () => {
@@ -37,8 +37,8 @@ describe("QueryConsole", () => {
 
     render(<QueryConsole />);
 
-    await user.click(screen.getByRole("button", { name: /^example2$/i }));
-    await user.click(screen.getByRole("button", { name: /find sources/i }));
+    await user.click(screen.getByRole("button", { name: /示例：自定义市场/ }));
+    await user.click(screen.getByRole("button", { name: /查找来源/ }));
 
     await waitFor(() => {
       expect(vi.mocked(fetch)).toHaveBeenCalledWith(
@@ -65,9 +65,9 @@ describe("QueryConsole", () => {
 
     render(<QueryConsole />);
 
-    await user.click(screen.getByRole("button", { name: /^example1$/i }));
+    await user.click(screen.getByRole("button", { name: /示例：市场 ID/ }));
 
-    expect(screen.getByLabelText(/market id/i)).toHaveValue("540816");
+    expect(screen.getByLabelText(/市场 ID/)).toHaveValue("540816");
   });
 
   it("uses /po1ymarket when NEXT_PUBLIC_API_BASE_URL is unset", async () => {
@@ -76,8 +76,8 @@ describe("QueryConsole", () => {
 
     render(<QueryConsole />);
 
-    await user.click(screen.getByRole("button", { name: /^example2$/i }));
-    await user.click(screen.getByRole("button", { name: /find sources/i }));
+    await user.click(screen.getByRole("button", { name: /示例：自定义市场/ }));
+    await user.click(screen.getByRole("button", { name: /查找来源/ }));
 
     await waitFor(() => {
       expect(vi.mocked(fetch)).toHaveBeenCalledWith(
@@ -92,20 +92,16 @@ describe("QueryConsole", () => {
 });
 
 describe("HomePage", () => {
-  it("renders hero, workbench nav link, Questions section, and section anchors", () => {
+  it("renders hero, workbench nav link, Questions section, and section anchors", async () => {
     render(<HomePage />);
 
     expect(screen.getByRole("navigation")).toBeInTheDocument();
 
     const main = screen.getByRole("main");
-    expect(
-      within(main).getByRole("heading", {
-        level: 1,
-        name: /find signal before the market moves/i,
-      }),
-    ).toBeInTheDocument();
+    expect(within(main).getByRole("heading", { level: 1 })).toHaveTextContent(/find signal/i);
+    expect(within(main).getByRole("heading", { level: 1 })).toHaveTextContent(/market moves/i);
 
-    expect(screen.getByRole("heading", { name: /^questions$/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /^questions$/i })).toBeInTheDocument();
 
     expect(screen.getByRole("link", { name: /^workbench$/i })).toHaveAttribute("href", "/dashboard");
 
@@ -121,8 +117,8 @@ describe("DashboardPage", () => {
 
     const main = screen.getByRole("main");
     expect(within(main).getByRole("navigation")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /back to home/i })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /返回首页/ })).toHaveAttribute("href", "/");
     expect(document.getElementById("console")).not.toBeNull();
-    expect(screen.getByRole("region", { name: /query console/i })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /查询工作台/ })).toBeInTheDocument();
   });
 });

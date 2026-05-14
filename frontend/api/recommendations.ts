@@ -6,6 +6,10 @@ import type {
   RecommendedSourceRow,
 } from "@/types/recommendation";
 import { publicHostname } from "@/utils/display";
+import {
+  formatRecommendationsHttpError,
+  formatRecommendationsNetworkError,
+} from "@/utils/recommendationErrors";
 
 export { getRecommendationsApiBaseUrl, DEFAULT_RECOMMENDATIONS_API_BASE_URL } from "@/config/recommendation";
 
@@ -22,12 +26,12 @@ export async function fetchRecommendations(
   const body: Record<string, string> = {};
   if (input.mode === "market-id") {
     if (!input.marketId?.trim()) {
-      return { state: "error", results: [], errorMessage: "Market ID is required." };
+      return { state: "error", results: [], errorMessage: "请填写市场 ID。" };
     }
     body.market_id = input.marketId.trim();
   } else {
     if (!input.marketQuestion?.trim()) {
-      return { state: "error", results: [], errorMessage: "Market question is required." };
+      return { state: "error", results: [], errorMessage: "请填写市场问题描述。" };
     }
     body.market_question = input.marketQuestion.trim();
   }
@@ -40,17 +44,18 @@ export async function fetchRecommendations(
     });
 
     if (!res.ok) {
-      let errorMessage = `API error (${res.status})`;
+      let serverMessage = `API 错误（${res.status}）`;
       try {
         const errJson = (await res.json()) as { message?: string | string[] };
         if (typeof errJson.message === "string") {
-          errorMessage = errJson.message;
+          serverMessage = errJson.message;
         } else if (Array.isArray(errJson.message)) {
-          errorMessage = errJson.message.join("; ");
+          serverMessage = errJson.message.join("；");
         }
       } catch {
         /* keep default */
       }
+      const errorMessage = formatRecommendationsHttpError(res.status, baseUrl, serverMessage);
       return { state: "error", results: [], errorMessage };
     }
 
@@ -67,7 +72,7 @@ export async function fetchRecommendations(
         url: s.url,
         domain: host,
         label: host,
-        reason: "Returned by recommendation API.",
+        reason: "由推荐接口返回。",
         score: typeof s.score === "number" ? s.score : 0,
       };
     });
@@ -75,7 +80,11 @@ export async function fetchRecommendations(
     return { state: "success", results, planning_meta: planningMeta };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
-    return { state: "error", results: [], errorMessage: message };
+    return {
+      state: "error",
+      results: [],
+      errorMessage: formatRecommendationsNetworkError(baseUrl, message),
+    };
   }
 }
 

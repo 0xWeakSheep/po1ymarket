@@ -8,7 +8,7 @@ export function WorkbenchGrid() {
         <div
           id="console"
           className="h-full min-h-[min(72vh,820px)] w-full"
-          aria-label="Query console — primary workspace"
+          aria-label="查询工作台 — 主工作区"
         >
           <QueryConsole />
         </div>

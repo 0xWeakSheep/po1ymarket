@@ -8,6 +8,7 @@ Applications in this repo:
 ## Documentation
 
 - **`docs/README.md`** — 文档总索引（superpowers、契约、检索 I/O 等）
+- **`docs/frontend-user-guide.md`** — 前端工作台使用说明（路由、Query Console、`.env.local` 联调）
 - **`backend/src/recommendations/query/README.md`** — Query 预览、`planning_meta`、`agent-prompt/*.md`；**§6.1** 为当前 **Scoring / Rerank** 与主链路对齐说明
 - **`backend/src/recommendations/retrieval/SEARCH-IO.md`** — 搜索 / 多源召回层 **输入输出与扩展约定**（给其他同学实现检索）
 - **`docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`** — 打分 / rerank 演进路线（与 §6.1 对照）
@@ -59,4 +60,4 @@ npm install
 npm run dev
 ```
 
-Use `frontend/.env.local` for local runs: see `frontend/.env.example`. By default the console calls `/po1ymarket` (rewrite to Nest via `BACKEND_PROXY_TARGET`). Optional `NEXT_PUBLIC_API_BASE_URL` overrides that for browser-direct debugging.
+Use `frontend/.env.local` for local runs: see `frontend/.env.example`. By default the console calls `/po1ymarket` (rewrite to Nest via `BACKEND_PROXY_TARGET`). Optional `NEXT_PUBLIC_API_BASE_URL` overrides that for browser-direct debugging. End-user oriented steps: **`docs/frontend-user-guide.md`**.
