@@ -23,6 +23,15 @@
 
 ## 3. 迭代记录
 
+### 2026-05-14 Query Console 中文体验与联调错误提示
+
+- **背景**：`docs/README.md` 将 `docs/frontend-user-guide.md` 列为前端使用手册入口，但该文件此前缺失；工作台界面以英文为主，与文档中的中文协作描述不一致，且代理未配置时仅显示裸 404，不利于联调。
+- **改动范围**：`frontend/components/dashboard/QueryConsole.tsx`、`WorkbenchGrid.tsx`、`app/dashboard/page.tsx`、`frontend/api/recommendations.ts`、新增 `frontend/utils/recommendationErrors.ts` 与 `frontend/constants/planningMeta.ts`、测试与 `docs/frontend-user-guide.md`。
+- **实现要点**：Query Console 与仪表盘导航的主要文案改为中文；对同源 `/po1ymarket` 的 404 与典型网络失败附加 `BACKEND_PROXY_TARGET` / `NEXT_PUBLIC_API_BASE_URL` 操作指引；`fallback_reason` 展示与契约附录对齐的中文标签。
+- **验证方式**：`cd frontend && npm run test`。
+- **结果**：新协作者可按界面提示与使用手册完成 Nest 联调；契约字段仍与后端 snake_case 一致。
+- **下一步**：若增加「一键检测后端连通性」等主动探测，再在本文追加记录。
+
 ### 2026-05-11 后端契约对齐说明（前端消费 `planning_meta`）
 
 - **背景**：后端已为 Query / 推荐响应补充 `planning_meta`（含降级原因与可选 `debug_detail`）；文档层需单点对齐全链路叙述。

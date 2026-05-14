@@ -4,6 +4,7 @@
 
 | 路径 | 用途 |
 |------|------|
+| [`frontend-user-guide.md`](./frontend-user-guide.md) | **前端使用手册**：页面入口、Query Console 操作、环境变量与联调、常见问题（与 `frontend/README.md` 对齐） |
 | [`superpowers/README.md`](./superpowers/README.md) | 文档治理规则、前后端分治、迭代日志与契约入口 |
 | [`superpowers/api-contract-and-errors.md`](./superpowers/api-contract-and-errors.md) | API 契约、`planning_meta`、错误语义（改接口必读） |
 | [`superpowers/specs/`](./superpowers/specs/) | 设计规格（retrieval 缓存、scoring roadmap 等） |
