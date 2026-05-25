@@ -2,7 +2,11 @@ import { Inject, Injectable } from '@nestjs/common'
 
 import { SETTINGS } from '../../../common/constants'
 import type { Settings } from '../../../config/settings'
-import type { CandidateSource, MarketContext } from '../../types/recommendations'
+import type {
+  CandidateSource,
+  MarketContext,
+  RetrievalMeta
+} from '../../types/recommendations'
 import { SearchClient } from '../integration/search.client'
 
 @Injectable()
@@ -15,7 +19,7 @@ export class CandidateRetrieverService {
   async retrieve (input: {
     market: MarketContext
     candidateLimit?: number
-  }): Promise<CandidateSource[]> {
+  }): Promise<{ candidates: CandidateSource[]; retrievalMeta: RetrievalMeta }> {
     return await this.searchClient.gatherCandidates({
       queries: input.market.searchQueries,
       resolutionSource: input.market.resolutionSource,

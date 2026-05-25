@@ -8,7 +8,7 @@
  * 4. 打分
  * 5. 返回推荐链接列表
  */
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 
 import { SETTINGS } from '../common/constants'
 import type { Settings } from '../config/settings'
@@ -22,6 +22,8 @@ import {
 
 @Injectable()
 export class RecommendationsService {
+  private readonly logger = new Logger(RecommendationsService.name)
+
   constructor (
     @Inject(SETTINGS) private readonly settings: Settings,
     private readonly retrievalService: RetrievalService,
@@ -44,13 +46,30 @@ export class RecommendationsService {
     const recommended = scoredCandidates
       .filter((candidate) => !candidate.stale)
       .slice(0, normalizedRequest.max_results ?? this.settings.marketDefaultLimit)
+    const staleFilteredCount = scoredCandidates.filter((candidate) => candidate.stale).length
+    const retrievalMeta = {
+      ...retrievalResult.retrievalMeta,
+      total_candidates_after_scoring: recommended.length,
+      stale_filtered_count: staleFilteredCount
+    }
+
+    this.logger.log(JSON.stringify({
+      event: 'recommendation_retrieval_summary',
+      query_source: retrievalResult.market.planning_meta?.query_source,
+      query_count: retrievalMeta.query_count,
+      providers: retrievalMeta.providers,
+      total_candidates_before_scoring: retrievalMeta.total_candidates_before_scoring,
+      total_candidates_after_scoring: retrievalMeta.total_candidates_after_scoring,
+      stale_filtered_count: retrievalMeta.stale_filtered_count
+    }))
 
     return {
       recommended_sources: recommended.map((candidate) => ({
         url: candidate.url,
         score: 0
       })),
-      planning_meta: retrievalResult.market.planning_meta
+      planning_meta: retrievalResult.market.planning_meta,
+      retrieval_meta: retrievalMeta
     }
   }
 }

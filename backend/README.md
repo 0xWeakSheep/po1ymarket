@@ -51,7 +51,7 @@ Internal query port: `3002` by default (override with `PO1MARKET_QUERY_SERVICE_P
 |--------|------|-------------|
 | GET | `/` | `{ root: true }` |
 | GET | `/health` | `{ status: "ok" }` |
-| POST | `/api/v1/recommendations` | Body: `market_id` and/or `market_question`, etc. Returns `{ recommended_sources: [...] }`. Status **200** (not 201). |
+| POST | `/api/v1/recommendations` | Body: one of `polymarket_market_id` / `polymarket_market_slug` / `polymarket_event_slug` / legacy `market_id`, and/or `market_question`. Returns `{ recommended_sources: [...], planning_meta?, retrieval_meta? }`. Status **200** (not 201). |
 
 ## GitHub Delivery
 

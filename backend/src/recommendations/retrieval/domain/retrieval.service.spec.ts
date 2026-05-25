@@ -11,9 +11,16 @@ describe('RetrievalService', () => {
       })
     }
     const candidateRetriever = {
-      retrieve: jest.fn().mockResolvedValue([
-        { title: 'A', url: 'https://a.com', sourceType: 'news', provider: 'google_news' }
-      ])
+      retrieve: jest.fn().mockResolvedValue({
+        candidates: [
+          { title: 'A', url: 'https://a.com', sourceType: 'news', provider: 'google_news' }
+        ],
+        retrievalMeta: {
+          query_count: 2,
+          providers: [],
+          total_candidates_before_scoring: 1
+        }
+      })
     }
 
     const service = new RetrievalService(queryService as any, candidateRetriever as any)
@@ -28,5 +35,6 @@ describe('RetrievalService', () => {
       candidateLimit: 5
     })
     expect(result.candidates).toHaveLength(1)
+    expect(result.retrievalMeta.total_candidates_before_scoring).toBe(1)
   })
 })

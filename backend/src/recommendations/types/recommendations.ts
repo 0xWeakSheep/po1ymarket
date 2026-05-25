@@ -1,7 +1,14 @@
 export type SourceType = 'news' | 'social' | 'official'
 
 export type RecommendationRequest = {
+  /** Legacy alias for Polymarket Gamma market id. Prefer `polymarket_market_id`. */
   market_id?: string
+  /** Explicit Polymarket Gamma market id (`GET /markets/{id}`). */
+  polymarket_market_id?: string
+  /** Explicit Polymarket market slug (`GET /markets/slug/{slug}`). */
+  polymarket_market_slug?: string
+  /** Explicit Polymarket event slug (`GET /events/slug/{slug}`). */
+  polymarket_event_slug?: string
   market_question?: string
   market_description?: string
   resolution_source?: string
@@ -32,6 +39,8 @@ export type QueryPlanningMeta = {
 
 export type MarketContext = {
   marketId?: string
+  marketSlug?: string
+  eventSlug?: string
   question: string
   description?: string
   resolutionSource?: string
@@ -56,6 +65,22 @@ export type CandidateSource = {
   rationale?: string
 }
 
+export type RetrievalProviderDebug = {
+  provider: string
+  query_count: number
+  candidate_count: number
+  failed_query_count: number
+  failure_reasons?: string[]
+}
+
+export type RetrievalMeta = {
+  query_count: number
+  providers: RetrievalProviderDebug[]
+  total_candidates_before_scoring: number
+  total_candidates_after_scoring?: number
+  stale_filtered_count?: number
+}
+
 export type RecommendedLink = {
   url: string
   score: number
@@ -64,6 +89,7 @@ export type RecommendedLink = {
 export type RecommendationResponse = {
   recommended_sources: RecommendedLink[]
   planning_meta?: QueryPlanningMeta
+  retrieval_meta?: RetrievalMeta
 }
 
 export type QueryPreviewResponse = {

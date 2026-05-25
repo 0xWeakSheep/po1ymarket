@@ -20,6 +20,8 @@ export type QueryPlanningMetaWire = {
 export type RecommendationsQueryInput = {
   mode: QueryMode;
   marketId?: string;
+  marketSlug?: string;
+  eventSlug?: string;
   marketQuestion?: string;
 };
 

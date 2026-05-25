@@ -6,7 +6,9 @@ import { runRecommendationsQuery } from "@/api/recommendations";
 import { PanelShell } from "@/components/ui/PanelShell";
 import { PixelLabel } from "@/components/ui/PixelLabel";
 import {
+  EXAMPLE_EVENT_SLUG,
   EXAMPLE_MARKET_ID,
+  EXAMPLE_MARKET_SLUG,
   EXAMPLE_MARKET_QUESTION,
   EXAMPLE_RESOLUTION_SOURCE,
 } from "@/constants/examples";
@@ -76,7 +78,7 @@ function ResultsPanel({ hasSearched, isLoading, response }: ResultsPanelProps) {
         {!hasSearched ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-2 text-center">
             <p className="text-sm text-slate-400">
-              在左侧填写市场 ID 或自定义市场描述，点击「查找来源」即可预览推荐来源。
+              在左侧填写 Polymarket 市场 ID、market slug、event slug，或直接填写自定义市场描述，点击「查找来源」即可预览推荐来源。
             </p>
             <p className="max-w-md text-xs leading-relaxed text-slate-500">
               联调 Nest：在 <span className="font-mono text-slate-400">frontend/.env.local</span>{" "}
@@ -138,13 +140,17 @@ export function QueryConsole() {
   const regionId = useId();
   const [mode, setMode] = useState<QueryMode>("market-id");
   const [marketId, setMarketId] = useState("");
+  const [marketSlug, setMarketSlug] = useState("");
+  const [eventSlug, setEventSlug] = useState("");
   const [marketQuestion, setMarketQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<RecommendationsRunState>(INITIAL_RESPONSE);
   const [hasSearched, setHasSearched] = useState(false);
 
   const hasInput =
-    mode === "market-id" ? Boolean(marketId.trim()) : Boolean(marketQuestion.trim());
+    mode === "market-id"
+      ? Boolean(marketId.trim() || marketSlug.trim() || eventSlug.trim())
+      : Boolean(marketQuestion.trim());
   const canSubmit = hasInput && !isLoading;
 
   async function handleSubmit() {
@@ -154,7 +160,7 @@ export function QueryConsole() {
 
     const next =
       mode === "market-id"
-        ? await runRecommendationsQuery({ mode, marketId })
+        ? await runRecommendationsQuery({ mode, marketId, marketSlug, eventSlug })
         : await runRecommendationsQuery({ mode, marketQuestion });
 
     setResponse(next);
@@ -204,7 +210,7 @@ export function QueryConsole() {
                     : "text-slate-200 hover:bg-white/10"
                 }`}
               >
-                使用市场 ID
+                使用 Polymarket 标识
               </button>
               <button
                 type="button"
@@ -225,10 +231,36 @@ export function QueryConsole() {
                 onClick={() => {
                   setMode("market-id");
                   setMarketId(EXAMPLE_MARKET_ID);
+                  setMarketSlug("");
+                  setEventSlug("");
                 }}
                 className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
               >
                 示例：市场 ID
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("market-id");
+                  setMarketId("");
+                  setMarketSlug(EXAMPLE_MARKET_SLUG);
+                  setEventSlug("");
+                }}
+                className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
+              >
+                示例：market slug
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("market-id");
+                  setMarketId("");
+                  setMarketSlug("");
+                  setEventSlug(EXAMPLE_EVENT_SLUG);
+                }}
+                className={`${btnBase} border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-violet-400/40 hover:text-white`}
+              >
+                示例：event slug
               </button>
               <button
                 type="button"
@@ -247,19 +279,48 @@ export function QueryConsole() {
           <div className="mt-4 flex min-h-0 flex-1 flex-col"
           >
             {mode === "market-id" ? (
-              <label className="block text-sm text-slate-300"
-              >
-                <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400"
-                >
-                  市场 ID
-                </span>
-                <input
-                  aria-label="市场 ID"
-                  value={marketId}
-                  onChange={(event) => setMarketId(event.target.value)}
-                  className={inputGlowClass}
-                />
-              </label>
+              <div className="space-y-4">
+                <label className="block text-sm text-slate-300">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                    Polymarket 市场 ID
+                  </span>
+                  <input
+                    aria-label="Polymarket 市场 ID"
+                    value={marketId}
+                    onChange={(event) => setMarketId(event.target.value)}
+                    className={inputGlowClass}
+                    placeholder="Gamma /markets/{id}，例如：540816"
+                  />
+                </label>
+                <label className="block text-sm text-slate-300">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                    market slug
+                  </span>
+                  <input
+                    aria-label="market slug"
+                    value={marketSlug}
+                    onChange={(event) => setMarketSlug(event.target.value)}
+                    className={inputGlowClass}
+                    placeholder="单个市场 slug，例如：fed-decision-in-october-bps"
+                  />
+                </label>
+                <label className="block text-sm text-slate-300">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                    event slug
+                  </span>
+                  <input
+                    aria-label="event slug"
+                    value={eventSlug}
+                    onChange={(event) => setEventSlug(event.target.value)}
+                    className={inputGlowClass}
+                    placeholder="事件 slug，例如：fed-decision-in-october"
+                  />
+                </label>
+                <p className="text-xs leading-relaxed text-slate-500">
+                  `market id`、`market slug`、`event slug` 含义不同。若同时填写，后端优先级为
+                  `market id` &gt; `market slug` &gt; `event slug`。
+                </p>
+              </div>
             ) : (
               <label className="flex min-h-0 flex-1 flex-col text-sm text-slate-300"
               >
@@ -288,7 +349,7 @@ export function QueryConsole() {
               type="button"
               disabled={!canSubmit}
               onClick={() => void handleSubmit()}
-              title={!hasInput ? "请先填写市场 ID 或市场问题" : undefined}
+              title={!hasInput ? "请先填写 Polymarket 标识或市场问题" : undefined}
               className={`w-full rounded-full bg-gradient-to-r from-sky-400 to-violet-500 px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-[0_14px_48px_rgba(56,189,248,0.35),0_0_40px_rgba(139,92,246,0.2)] transition duration-200 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:brightness-100 sm:w-auto ${btnBase}`}
             >
               {isLoading ? "正在检索…" : "查找来源"}

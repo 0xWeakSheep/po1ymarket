@@ -43,6 +43,9 @@
 
 ```json
 {
+  "polymarket_market_id": "optional-string",
+  "polymarket_market_slug": "optional-string",
+  "polymarket_event_slug": "optional-string",
   "market_id": "optional-string",
   "market_question": "optional-string",
   "market_description": "optional-string",
@@ -52,8 +55,9 @@
 
 约束：
 
-- `market_id` 和 `market_question` 至少提供一个
-- 若两者都缺失，返回 `400 Bad Request`
+- `market_question`、`polymarket_market_id`、`polymarket_market_slug`、`polymarket_event_slug`、legacy `market_id` 至少提供一个
+- `market_id` 仅作为 legacy alias 保留，语义等同于 `polymarket_market_id`
+- 若上述字段都缺失，返回 `400 Bad Request`
 
 成功响应（`QueryPreviewResponse`）：
 

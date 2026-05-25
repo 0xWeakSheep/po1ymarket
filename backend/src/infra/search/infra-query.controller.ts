@@ -17,12 +17,22 @@ export class InfraQueryController {
   @Post('queries')
   @HttpCode(HttpStatus.OK)
   async create (@Body() payload: RecommendationRequest) {
-    if (!payload?.market_id && !payload?.market_question) {
+    if (!hasMarketSelector(payload)) {
       throw new BadRequestException(
-        'Either market_id or market_question must be provided.'
+        'Provide at least one of market_question, polymarket_market_id, polymarket_market_slug, polymarket_event_slug, or legacy market_id.'
       )
     }
 
     return await this.infraQueryService.resolveQueries(payload)
   }
+}
+
+function hasMarketSelector (payload: RecommendationRequest | undefined): boolean {
+  return Boolean(
+    payload?.market_question ||
+    payload?.polymarket_market_id ||
+    payload?.polymarket_market_slug ||
+    payload?.polymarket_event_slug ||
+    payload?.market_id
+  )
 }

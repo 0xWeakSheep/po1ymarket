@@ -8,6 +8,9 @@ export function buildCacheKey (
 ): string {
   return `${scope}:${stableStringify({
     market_id: request.market_id?.trim() || undefined,
+    polymarket_market_id: request.polymarket_market_id?.trim() || undefined,
+    polymarket_market_slug: request.polymarket_market_slug?.trim() || undefined,
+    polymarket_event_slug: request.polymarket_event_slug?.trim() || undefined,
     market_question: request.market_question?.trim() || undefined,
     market_description: request.market_description?.trim() || undefined,
     resolution_source: request.resolution_source?.trim() || undefined,

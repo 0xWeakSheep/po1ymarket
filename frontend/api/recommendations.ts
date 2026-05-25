@@ -25,10 +25,19 @@ export async function fetchRecommendations(
 ): Promise<RecommendationsRunState> {
   const body: Record<string, string> = {};
   if (input.mode === "market-id") {
-    if (!input.marketId?.trim()) {
-      return { state: "error", results: [], errorMessage: "请填写市场 ID。" };
+    const marketId = input.marketId?.trim();
+    const marketSlug = input.marketSlug?.trim();
+    const eventSlug = input.eventSlug?.trim();
+    if (!marketId && !marketSlug && !eventSlug) {
+      return {
+        state: "error",
+        results: [],
+        errorMessage: "请至少填写 Polymarket 市场 ID、market slug 或 event slug 之一。",
+      };
     }
-    body.market_id = input.marketId.trim();
+    if (marketId) body.polymarket_market_id = marketId;
+    if (marketSlug) body.polymarket_market_slug = marketSlug;
+    if (eventSlug) body.polymarket_event_slug = eventSlug;
   } else {
     if (!input.marketQuestion?.trim()) {
       return { state: "error", results: [], errorMessage: "请填写市场问题描述。" };

@@ -11,8 +11,8 @@
 
 ## Query Console 操作
 
-1. **模式**：「使用市场 ID」或「使用自定义市场」切换请求体字段（对应后端 `market_id` / `market_question`）。
-2. **示例**：「示例：市场 ID」「示例：自定义市场」一键填入常量（见 `frontend/constants/examples.ts`）。
+1. **模式**：「使用 Polymarket 标识」或「使用自定义市场」切换请求体字段（对应后端 `polymarket_market_id` / `polymarket_market_slug` / `polymarket_event_slug` / `market_question`）。
+2. **示例**：「示例：市场 ID」「示例：market slug」「示例：event slug」「示例：自定义市场」一键填入常量（见 `frontend/constants/examples.ts`）。
 3. **提交**：点击「查找来源」，或在非多行输入框聚焦时按 Enter（多行文本框内 Enter 为换行）。
 4. **输出**：成功时展示域名、分数与链接；无结果时提示调整描述；错误时展示服务端或网络错误，并在常见场景附带联调指引。
 

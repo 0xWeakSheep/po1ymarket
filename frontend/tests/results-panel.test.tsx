@@ -33,7 +33,7 @@ describe("fetchRecommendations", () => {
       "http://127.0.0.1:3001/api/v1/recommendations",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ market_id: "540816" }),
+        body: JSON.stringify({ polymarket_market_id: "540816" }),
       }),
     );
   });

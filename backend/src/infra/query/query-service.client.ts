@@ -33,7 +33,7 @@ export class QueryServiceClient {
     const controller = new AbortController()
     const timeout = setTimeout(
       () => controller.abort(),
-      this.settings.requestTimeoutSeconds * 1000
+      this.settings.queryServiceTimeoutSeconds * 1000
     )
 
     try {
@@ -61,7 +61,7 @@ export class QueryServiceClient {
       }
 
       throw new ServiceUnavailableException(
-        `Cannot reach query service at ${this.settings.queryServiceBaseUrl}${pathname}.`
+        `Query service at ${this.settings.queryServiceBaseUrl}${pathname} did not respond successfully within ${this.settings.queryServiceTimeoutSeconds}s.`
       )
     } finally {
       clearTimeout(timeout)

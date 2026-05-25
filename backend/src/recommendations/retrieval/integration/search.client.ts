@@ -10,7 +10,31 @@ import { Inject, Injectable } from '@nestjs/common'
 
 import { SETTINGS } from '../../../common/constants'
 import type { Settings } from '../../../config/settings'
-import type { CandidateSource } from '../../types/recommendations'
+import type {
+  CandidateSource,
+  RetrievalMeta,
+  RetrievalProviderDebug
+} from '../../types/recommendations'
+
+type FetchTextResult = {
+  ok: boolean
+  status?: number
+  body: string
+  error?: string
+}
+
+type FetchJsonResult<T> = {
+  ok: boolean
+  status?: number
+  body: T
+  error?: string
+}
+
+type SearchBatchResult = {
+  candidates: CandidateSource[]
+  failed: boolean
+  failureReason?: string
+}
 
 @Injectable()
 export class SearchClient {
@@ -28,8 +52,14 @@ export class SearchClient {
     queries: string[]
     resolutionSource?: string
     candidateLimit: number
-  }): Promise<CandidateSource[]> {
+  }): Promise<{ candidates: CandidateSource[]; retrievalMeta: RetrievalMeta }> {
     const candidates: CandidateSource[] = []
+    const providerStats = new Map<string, {
+      queryCount: number
+      candidateCount: number
+      failedQueryCount: number
+      failureReasons: string[]
+    }>()
 
     //如果官方来源是URL，则直接加入候选源
     if (input.resolutionSource?.startsWith('http')) {
@@ -40,20 +70,57 @@ export class SearchClient {
         provider: 'polymarket',
         sourceType: 'official'
       })
+      providerStats.set('polymarket', {
+        queryCount: 0,
+        candidateCount: 1,
+        failedQueryCount: 0,
+        failureReasons: []
+      })
     }
 
     //计算查询词预算
     const queryBudget = Math.max(1, Math.floor(input.candidateLimit / Math.max(1, input.queries.length)))
 
-    for (const query of input.queries) {
-      //搜索Google News
-      candidates.push(...await this.searchGoogleNews(query, queryBudget))
-      //搜索Reddit
-      candidates.push(...await this.searchReddit(query, Math.max(1, Math.floor(queryBudget / 3))))
+    const searchTasks = input.queries.flatMap((query) => [
+      this.searchGoogleNews(query, queryBudget).then((result) => ({ provider: 'google_news', result })),
+      this.searchReddit(query, Math.max(1, Math.floor(queryBudget / 3))).then((result) => ({ provider: 'reddit', result }))
+    ])
+    const resultGroups = await Promise.all(searchTasks)
+    for (const { provider, result } of resultGroups) {
+      const entry = providerStats.get(provider) ?? {
+        queryCount: 0,
+        candidateCount: 0,
+        failedQueryCount: 0,
+        failureReasons: []
+      }
+      entry.queryCount += 1
+      entry.candidateCount += result.candidates.length
+      if (result.failed) {
+        entry.failedQueryCount += 1
+        if (result.failureReason) entry.failureReasons.push(result.failureReason)
+      }
+      providerStats.set(provider, entry)
+      candidates.push(...result.candidates)
     }
 
     //去重并截断
-    return dedupeCandidates(candidates).slice(0, input.candidateLimit)
+    const deduped = dedupeCandidates(candidates).slice(0, input.candidateLimit)
+    const providers: RetrievalProviderDebug[] = Array.from(providerStats.entries()).map(([provider, stats]) => ({
+      provider,
+      query_count: stats.queryCount,
+      candidate_count: stats.candidateCount,
+      failed_query_count: stats.failedQueryCount,
+      ...(stats.failureReasons.length > 0 ? { failure_reasons: Array.from(new Set(stats.failureReasons)).slice(0, 5) } : {})
+    }))
+
+    return {
+      candidates: deduped,
+      retrievalMeta: {
+        query_count: input.queries.length,
+        providers,
+        total_candidates_before_scoring: deduped.length
+      }
+    }
   }
 
   /**
@@ -63,7 +130,7 @@ export class SearchClient {
    * 1. 查询词
    * 2. 限制
    */
-  private async searchGoogleNews (query: string, limit: number): Promise<CandidateSource[]> {
+  private async searchGoogleNews (query: string, limit: number): Promise<SearchBatchResult> {
     const params = new URLSearchParams({
       q: query,
       hl: 'en-US',
@@ -71,10 +138,18 @@ export class SearchClient {
       ceid: 'US:en'
     })
 
-    const responseText = await this.fetchText(`${this.settings.googleNewsBaseUrl}?${params.toString()}`)
-    const items = extractXmlBlocks(responseText, 'item')
+    const response = await this.fetchText(`${this.settings.googleNewsBaseUrl}?${params.toString()}`)
+    if (!response.ok) {
+      return {
+        candidates: [],
+        failed: true,
+        failureReason: response.error ?? `http_${response.status ?? 'unknown'}`
+      }
+    }
+    const items = extractXmlBlocks(response.body, 'item')
 
-    return items.slice(0, limit).flatMap((item) => {
+    return {
+      candidates: items.slice(0, limit).flatMap((item) => {
       const link = extractXmlTag(item, 'link')
       const title = extractXmlTag(item, 'title')
       const description = stripHtml(extractXmlTag(item, 'description'))
@@ -91,7 +166,9 @@ export class SearchClient {
         sourceType: 'news' as const,
         publishedAt: parseRfcDate(extractXmlTag(item, 'pubDate'))
       }]
-    })
+      }),
+      failed: false
+    }
   }
 
   /**
@@ -101,7 +178,7 @@ export class SearchClient {
    * 1. 查询词
    * 2. 限制
    */
-  private async searchReddit (query: string, limit: number): Promise<CandidateSource[]> {
+  private async searchReddit (query: string, limit: number): Promise<SearchBatchResult> {
     const params = new URLSearchParams({
       q: query,
       sort: 'new',
@@ -113,10 +190,18 @@ export class SearchClient {
     const response = await this.fetchJson<{ data?: { children?: Array<{ data?: Record<string, unknown> }> } }>(
       `${this.settings.redditSearchBaseUrl}?${params.toString()}`
     )
+    if (!response.ok) {
+      return {
+        candidates: [],
+        failed: true,
+        failureReason: response.error ?? `http_${response.status ?? 'unknown'}`
+      }
+    }
 
-    const children = response.data?.children ?? []
+    const children = response.body.data?.children ?? []
 
-    return children.flatMap((child) => {
+    return {
+      candidates: children.flatMap((child) => {
       const data = child.data ?? {}
       const permalink = typeof data.permalink === 'string' ? data.permalink : undefined
       const title = typeof data.title === 'string' ? data.title : undefined
@@ -137,10 +222,12 @@ export class SearchClient {
         sourceType: 'social' as const,
         publishedAt: parseUnixTime(typeof data.created_utc === 'number' ? data.created_utc : undefined)
       }]
-    })
+      }),
+      failed: false
+    }
   }
 
-  private async fetchText (url: string): Promise<string> {
+  private async fetchText (url: string): Promise<FetchTextResult> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), this.settings.requestTimeoutSeconds * 1000)
 
@@ -151,18 +238,31 @@ export class SearchClient {
       })
 
       if (!response.ok) {
-        return ''
+        return {
+          ok: false,
+          status: response.status,
+          body: '',
+          error: `http_${response.status}`
+        }
       }
 
-      return await response.text()
-    } catch {
-      return ''
+      return {
+        ok: true,
+        status: response.status,
+        body: await response.text()
+      }
+    } catch (error) {
+      return {
+        ok: false,
+        body: '',
+        error: error instanceof Error ? error.name : 'fetch_failed'
+      }
     } finally {
       clearTimeout(timeout)
     }
   }
 
-  private async fetchJson<T> (url: string): Promise<T> {
+  private async fetchJson<T> (url: string): Promise<FetchJsonResult<T>> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), this.settings.requestTimeoutSeconds * 1000)
 
@@ -173,12 +273,25 @@ export class SearchClient {
       })
 
       if (!response.ok) {
-        return {} as T
+        return {
+          ok: false,
+          status: response.status,
+          body: {} as T,
+          error: `http_${response.status}`
+        }
       }
 
-      return await response.json() as T
-    } catch {
-      return {} as T
+      return {
+        ok: true,
+        status: response.status,
+        body: await response.json() as T
+      }
+    } catch (error) {
+      return {
+        ok: false,
+        body: {} as T,
+        error: error instanceof Error ? error.name : 'fetch_failed'
+      }
     } finally {
       clearTimeout(timeout)
     }

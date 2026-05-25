@@ -10,6 +10,8 @@ export type Settings = {
   polymarketGammaApi: string
   /** Same as Python `request_timeout_seconds` (httpx timeout). */
   requestTimeoutSeconds: number
+  /** Timeout for infra -> internal query-service HTTP calls. */
+  queryServiceTimeoutSeconds: number
   queryServicePort: number
   queryServiceHost: string
   queryServiceBaseUrl: string
@@ -71,6 +73,10 @@ export function getSettings (): Settings {
   return {
     polymarketGammaApi: process.env.PO1MARKET_POLYMARKET_GAMMA_API ?? 'https://gamma-api.polymarket.com',
     requestTimeoutSeconds: readTimeoutSeconds(),
+    queryServiceTimeoutSeconds: readPositiveNumber(
+      process.env.PO1MARKET_QUERY_SERVICE_TIMEOUT_SECONDS,
+      45
+    ),
     queryServicePort,
     queryServiceHost,
     queryServiceBaseUrl,

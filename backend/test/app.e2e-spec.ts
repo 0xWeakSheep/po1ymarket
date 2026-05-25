@@ -15,7 +15,14 @@ describe('App (e2e)', () => {
           recommended_sources: [
             { url: 'https://example.com/a', score: 0.0 },
             { url: 'https://example.com/b', score: 0.0 }
-          ]
+          ],
+          retrieval_meta: {
+            query_count: 2,
+            providers: [],
+            total_candidates_before_scoring: 2,
+            total_candidates_after_scoring: 2,
+            stale_filtered_count: 0
+          }
         })
       })
       .compile()
@@ -32,7 +39,14 @@ describe('App (e2e)', () => {
       recommended_sources: [
         { url: 'https://example.com/a', score: 0.0 },
         { url: 'https://example.com/b', score: 0.0 }
-      ]
+      ],
+      retrieval_meta: {
+        query_count: 2,
+        providers: [],
+        total_candidates_before_scoring: 2,
+        total_candidates_after_scoring: 2,
+        stale_filtered_count: 0
+      }
     })
 
     await app.close()

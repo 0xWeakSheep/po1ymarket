@@ -3,6 +3,8 @@
 :root {
   --background: #06070b;
   --foreground: #f5f7ff;
+  --font-geist-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-geist-mono: "IBM Plex Mono", "SFMono-Regular", "Consolas", monospace;
 }
 
 @theme inline {
