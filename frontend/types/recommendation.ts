@@ -58,6 +58,15 @@ export type ScoringMetaWire = {
   llm_rerank_enabled: boolean;
 };
 
+export type CandidateScoreDebugWire = {
+  relevance_score: number;
+  freshness_score: number;
+  ai_score: number;
+  total_score: number;
+  stale: boolean;
+  stale_reason?: string;
+};
+
 /** Form → request body mapping uses snake_case on the wire (Nest). */
 export type RecommendationsQueryInput = {
   mode: QueryMode;
@@ -107,6 +116,7 @@ export type RecommendationApiJsonResponse = {
     provider?: string;
     source_type?: SourceTypeWire;
     rationale?: string;
+    debug_score?: CandidateScoreDebugWire;
   }>;
   market_meta?: MarketMetaWire;
   planning_meta?: QueryPlanningMetaWire;
