@@ -144,7 +144,7 @@ describe("QueryConsole", () => {
 });
 
 describe("HomePage", () => {
-  it("renders hero, workbench nav link, Questions section, and section anchors", async () => {
+  it("renders a full 90s landing page with required signature elements", async () => {
     render(<HomePage />);
 
     expect(screen.getByRole("navigation")).toBeInTheDocument();
@@ -156,6 +156,11 @@ describe("HomePage", () => {
     expect(await screen.findByRole("heading", { name: /^questions$/i })).toBeInTheDocument();
 
     expect(screen.getByRole("link", { name: /^workbench$/i })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByText(/Visitors: 0001997/i)).toBeInTheDocument();
+    expect(screen.getByText(/Under Construction/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/HOT!/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/announcement ticker/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/decorative 90s color squares/i)).toBeInTheDocument();
 
     expect(document.getElementById("intro")).not.toBeNull();
     expect(document.getElementById("faq")).not.toBeNull();
@@ -164,7 +169,7 @@ describe("HomePage", () => {
 });
 
 describe("DashboardPage", () => {
-  it("renders back link and query console workspace", () => {
+  it("renders back link and retro query console workspace", () => {
     render(<DashboardPage />);
 
     const main = screen.getByRole("main");
@@ -172,5 +177,8 @@ describe("DashboardPage", () => {
     expect(screen.getByRole("link", { name: /返回首页/ })).toHaveAttribute("href", "/");
     expect(document.getElementById("console")).not.toBeNull();
     expect(screen.getByRole("region", { name: /查询工作台/ })).toBeInTheDocument();
+    expect(screen.getByText("QUERY.EXE")).toBeInTheDocument();
+    expect(screen.getByText("RESULTS.OUT")).toBeInTheDocument();
+    expect(screen.getByText(/Workbench: 0002/i)).toBeInTheDocument();
   });
 });
