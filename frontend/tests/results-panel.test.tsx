@@ -64,6 +64,36 @@ describe("fetchRecommendations", () => {
     );
   });
 
+  it("falls back to host and default provider for blank source labels", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          recommended_sources: [
+            {
+              url: "https://news.example.com/article",
+              score: 0.5,
+              title: "   ",
+              provider: "   ",
+              rationale: "   ",
+            },
+          ],
+        }),
+      }),
+    );
+
+    const result = await fetchRecommendations(
+      { mode: "market-id", marketId: "540816" },
+      "http://127.0.0.1:3001",
+    );
+
+    expect(result.state).toBe("success");
+    if (result.state !== "success") throw new Error("expected success");
+    expect(result.results[0]?.label).toBe("news.example.com");
+    expect(result.results[0]?.reason).toBe("由 推荐接口 返回。");
+  });
+
   it("when using default proxy prefix, 404 responses include setup guidance", async () => {
     vi.stubGlobal(
       "fetch",

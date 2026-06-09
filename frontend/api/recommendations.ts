@@ -83,11 +83,12 @@ export async function fetchRecommendations(
 
     const results: RecommendedSourceRow[] = sources.map((s) => {
       const host = publicHostname(s.url);
+      const providerLabel = s.provider?.trim() || "推荐接口";
       return {
         url: s.url,
         domain: host,
         label: s.title?.trim() || host,
-        reason: s.rationale?.trim() || `由 ${s.provider ?? "推荐接口"} 返回。`,
+        reason: s.rationale?.trim() || `由 ${providerLabel} 返回。`,
         score: typeof s.score === "number" ? s.score : 0,
         provider: s.provider,
         sourceType: s.source_type,
