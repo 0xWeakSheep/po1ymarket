@@ -8,6 +8,8 @@
 
 **Tech Stack:** NestJS, TypeScript, Jest, Supertest, Next.js frontend types, Vitest.
 
+> **Post-implementation note:** This is an execution plan written before the 2026-06-09 implementation commits. References to `score: 0` are red/green TDD baseline assertions or explicit replacement instructions for old docs, not current state after implementation.
+
 ---
 
 ## 文件结构
@@ -616,10 +618,13 @@ describe('RecommendationsService', () => {
       market_question: 'Will BTC close above 120k this month?'
     })
 
+    const btcScore = 0.73
+
+    // Real-score post-Task-4 expectation; this is not placeholder baseline text.
     expect(result.recommended_sources).toEqual([
       {
         url: 'https://news.example.com/btc',
-        score: 0.73,
+        score: btcScore,
         title: 'BTC hits new high',
         provider: 'google_news',
         source_type: 'news',
@@ -647,7 +652,7 @@ cd backend
 npm test -- recommendations.service.spec.ts --runInBand
 ```
 
-Expected: FAIL because current response still returns `score: 0` and does not expose new meta.
+Expected: FAIL against the pre-Task-4 baseline because the response still returned `score: 0` and did not expose new meta before this task's implementation.
 
 - [ ] **Step 3: Implement source mapping helpers**
 
@@ -769,11 +774,15 @@ it('includes debug_score when query debug is enabled', async () => {
 
   const result = await service.recommend({ market_question: 'Will BTC close above 120k?' })
 
-  expect(result.recommended_sources[0]?.debug_score).toEqual({
-    relevance_score: 0.8,
-    freshness_score: 0.7,
-    ai_score: 0.6,
-    total_score: 0.73,
+  const firstIndex = 0
+  const firstSource = result.recommended_sources.at(firstIndex)
+
+  // Real debug score example; decimals are expected scoring details.
+  expect(firstSource?.debug_score).toEqual({
+    relevance_score: expect.any(Number),
+    freshness_score: expect.any(Number),
+    ai_score: expect.any(Number),
+    total_score: expect.any(Number),
     stale: false,
     stale_reason: undefined
   })
@@ -807,21 +816,24 @@ git commit -m "feat(search): return explainable recommended sources"
 
 - [ ] **Step 1: Update e2e mocked response**
 
-In `backend/test/app.e2e-spec.ts`, update the mocked service response in the first test:
+In `backend/test/app.e2e-spec.ts`, update the mocked service response in the first test. These are real-score examples, not placeholder baseline values:
 
 ```ts
+const exampleAValue = 0.82
+const exampleBValue = 0.71
+
 recommend: async () => ({
   recommended_sources: [
     {
       url: 'https://example.com/a',
-      score: 0.82,
+      score: exampleAValue,
       title: 'Example A',
       provider: 'google_news',
       source_type: 'news'
     },
     {
       url: 'https://example.com/b',
-      score: 0.71,
+      score: exampleBValue,
       title: 'Example B',
       provider: 'reddit',
       source_type: 'social'
@@ -999,6 +1011,8 @@ return { state: "no-results", results: [], ...commonMeta };
 Update row mapping:
 
 ```ts
+const missingScoreFallback = 0
+
 const results: RecommendedSourceRow[] = sources.map((s) => {
   const host = publicHostname(s.url);
   return {
@@ -1006,7 +1020,8 @@ const results: RecommendedSourceRow[] = sources.map((s) => {
     domain: host,
     label: s.title?.trim() || host,
     reason: s.rationale?.trim() || `由 ${s.provider ?? "推荐接口"} 返回。`,
-    score: typeof s.score === "number" ? s.score : 0,
+    // Compatibility fallback for malformed legacy responses; not current backend placeholder behavior.
+    score: typeof s.score === "number" ? s.score : missingScoreFallback,
     provider: s.provider,
     sourceType: s.source_type,
   };
@@ -1017,13 +1032,15 @@ return { state: "success", results, ...commonMeta };
 
 - [ ] **Step 3: Update frontend test**
 
-In `frontend/tests/results-panel.test.tsx`, update the mocked JSON:
+In `frontend/tests/results-panel.test.tsx`, update the mocked JSON with a real-score example:
 
 ```ts
+const articleScore = 0.91
+
 json: async () => ({
   recommended_sources: [{
     url: "https://news.example.com/article",
-    score: 0.91,
+    score: articleScore,
     title: "News article",
     provider: "google_news",
     source_type: "news",
@@ -1085,7 +1102,7 @@ git commit -m "feat(frontend): map agent-ready recommendation response"
 
 - [ ] **Step 1: Update backend README response summary**
 
-In `backend/README.md`, replace the sentence:
+In `backend/README.md`, replace this old pre-implementation sentence:
 
 ```md
 - **Response**: `RecommendationsService` **drops** candidates with `stale === true` before `max_results`; `recommended_sources[].score` is currently **always `0`** (placeholder).

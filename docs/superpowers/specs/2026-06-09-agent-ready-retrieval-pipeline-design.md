@@ -3,6 +3,8 @@
 > Date: 2026-06-09
 > Scope: `market -> query -> retrieval -> scoring -> recommended_sources`
 
+> **Post-implementation note:** This spec was written as the pre-implementation baseline for the 2026-06-09 agent-ready retrieval work. Current implementation commits now return real `recommended_sources[].score` values and staged `market_meta` / `query_meta` / `retrieval_meta` / `scoring_meta`; references to missing score/meta below describe the original gap this milestone addressed.
+
 ## 1. Purpose
 
 The first milestone is not a full RAG answer generator. The goal is to make the current recommendation pipeline clear, observable, and ready for an agent to consume.
@@ -37,12 +39,12 @@ Current strengths:
 - Retrieval provider diagnostics are already included in `retrieval_meta`.
 - Scoring already computes relevance, freshness, optional LLM score, `totalScore`, and stale filtering.
 
-Current gaps:
+Pre-implementation gaps addressed by the 2026-06-09 implementation:
 
-- The response hides useful scoring details because `recommended_sources[].score` is still a placeholder `0`.
-- The API does not expose enough stage-level metadata to explain the full chain.
-- Market input resolution is not surfaced as a first-class meta object.
-- Scoring output and stale filtering are not easy to debug from the client side.
+- The response previously hid useful scoring details because `recommended_sources[].score` was a placeholder `0`; this is now addressed by returning the real sorting score.
+- The API previously did not expose enough stage-level metadata to explain the full chain; this is now addressed by staged meta fields.
+- Market input resolution was not surfaced as a first-class meta object.
+- Scoring output and stale filtering were not easy to debug from the client side.
 - The system is retrieval-ready, but not yet agent-ready as an explainable pipeline.
 
 ## 3. Non-goals For This Milestone
