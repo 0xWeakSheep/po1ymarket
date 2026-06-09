@@ -16,6 +16,7 @@ RecommendationsService.recommend
        → QueryService.resolveMarketContext(request)   // 产出 MarketContext（含 searchQueries）
        → CandidateRetrieverService.retrieve({ market, candidateLimit? })
             → SearchClient.gatherCandidates({ queries, resolutionSource?, candidateLimit })
+                 // 返回 { candidates, retrievalMeta }
 ```
 
 实现文件：
@@ -43,6 +44,7 @@ RecommendationsService.recommend
 |------|------|------|
 | `market` | `MarketContext` | 含 `searchQueries`、`resolutionSource`、`planning_meta` 等，供日志与下游 |
 | `candidates` | `CandidateSource[]` | 仅经过检索与去重截断；**尚未**打分 |
+| `retrievalMeta` | `RetrievalMeta` | 检索阶段策略、候选池上限与召回统计，随推荐响应透出为 `retrieval_meta` |
 
 ---
 
@@ -57,7 +59,7 @@ RecommendationsService.recommend
 
 ### 输出
 
-`Promise<CandidateSource[]>`，语义与 `SearchClient.gatherCandidates` 一致。
+`Promise<{ candidates: CandidateSource[]; retrievalMeta: RetrievalMeta }>`，语义与 `SearchClient.gatherCandidates` 一致。
 
 ### 映射到 `SearchClient`
 
@@ -81,9 +83,9 @@ gatherCandidates({
 | `resolutionSource` | `string` | 否 | 若以 `http` 开头，会 **额外插入一条** `sourceType: 'official'` 的固定标题候选（见 §4.3） |
 | `candidateLimit` | `number` | 是 | 返回数组 **最多** 该条数（去重后 `slice`） |
 
-### 4.2 输出：`CandidateSource[]`（检索阶段保证的字段）
+### 4.2 输出：`{ candidates, retrievalMeta }`
 
-检索返回的对象 **必须** 满足类型中的「召回最小集」；打分相关字段在检索阶段 **不填**（由 `ScoringService` 后续写入）。
+`SearchClient.gatherCandidates` 返回 `{ candidates, retrievalMeta }`，不是裸 `CandidateSource[]`。其中 `candidates` 内每条对象 **必须** 满足类型中的「召回最小集」；打分相关字段在检索阶段 **不填**（由 `ScoringService` 后续写入）。
 
 | 字段 | 检索阶段 | 说明 |
 |------|----------|------|
@@ -94,6 +96,13 @@ gatherCandidates({
 | `provider` | 必填 | 实现层约定字符串，如 `google_news`、`reddit`、`polymarket` |
 | `publishedAt` | 可选 | 有则尽量填 `Date`，供 freshness / stale |
 | `relevanceScore` / `freshnessScore` / `aiScore` / `totalScore` / `stale` / `staleReason` / `rationale` | **不填** | 精排层职责 |
+
+`retrievalMeta` 当前字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `strategy` | `'fixed_provider_mix'` | 当前固定策略：每条 query 搜 Google News + Reddit，官方来源单独注入 |
+| `candidate_limit` | number | 本轮召回候选池上限 |
 
 ### 4.3 当前内置来源与 `provider` / `sourceType`
 

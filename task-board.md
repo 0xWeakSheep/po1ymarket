@@ -55,7 +55,7 @@
   - 启发式 relevance / freshness（`inferUrgency`、按 `sourceType` 微调；无日期时 official / 其它默认新鲜分）
   - 加权总分 `0.45 / 0.35 / 0.20`；`stale` 时总分再 ×0.4；**响应中剔除** `stale` 候选
   - 可选 **逐条** LLM rerank（`OpenAiClient` + `candidate-scoring.system.md`，与 Planner 同为 Chat Completions + `json_object`；user 含 `candidate_source_type`）
-  - 注意：`recommended_sources[].score` 当前仍为占位 **0**（排序已在服务端完成）
+- 推荐响应已从占位 `score: 0` 升级为真实排序分，并透出 market/query/retrieval/scoring 分阶段 meta，便于 agent 和前端调试消费。
 - 精排演进路线图：`docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`
 
 ### 下一步

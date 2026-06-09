@@ -25,7 +25,7 @@ System prompts for Planner and scoring are Markdown under **`backend/src/prompts
 
 - **Heuristic first** (`scoring.service.ts`): relevance from token overlap + `sourceType` bumps; freshness from age + `inferUrgency(question)`; default `aiScore` 0.5; **weighted total** `0.45 / 0.35 / 0.20`; if **stale**, total **× 0.4**; then sort by total.
 - **Optional LLM** (`OpenAiClient`): same SDK path as planner — **`chat.completions.create`** + `response_format: { type: 'json_object' }`, **one request per candidate** (sequential today). User payload includes `candidate_source_type` for prompt alignment with freshness defaults.
-- **Response**: `RecommendationsService` **drops** candidates with `stale === true` before `max_results`; `recommended_sources[].score` is currently **always `0`** (placeholder).
+- **Response**: `RecommendationsService` **drops** candidates with `stale === true` before `max_results`; `recommended_sources[]` now exposes real `score`, optional title/provider/source metadata, and the response carries `market_meta` / `query_meta` / `retrieval_meta` / `scoring_meta` for agent-ready diagnostics.
 
 Collaboration detail: `backend/src/recommendations/query/README.md` §6.1; roadmap: `docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`.
 
@@ -51,7 +51,7 @@ Internal query port: `3002` by default (override with `PO1MARKET_QUERY_SERVICE_P
 |--------|------|-------------|
 | GET | `/` | `{ root: true }` |
 | GET | `/health` | `{ status: "ok" }` |
-| POST | `/api/v1/recommendations` | Body: one of `polymarket_market_id` / `polymarket_market_slug` / `polymarket_event_slug` / legacy `market_id`, and/or `market_question`. Returns `{ recommended_sources: [...], planning_meta?, retrieval_meta? }`. Status **200** (not 201). |
+| POST | `/api/v1/recommendations` | Body: one of `polymarket_market_id` / `polymarket_market_slug` / `polymarket_event_slug` / legacy `market_id`, and/or `market_question`. Returns `{ recommended_sources: [...], market_meta?, planning_meta?, query_meta?, retrieval_meta?, scoring_meta? }`. Status **200** (not 201). |
 
 ## GitHub Delivery
 

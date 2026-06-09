@@ -10,6 +10,7 @@
 - 当前产品目标：输入 `market_id` 或 `market_question`，返回可用于后续 agent 分析的候选信息源链接。
 - 当前能力定位：已具备可用的推荐链路，但仍属于规则驱动检索 + 规则/LLM 混合打分阶段。
 - 当前主优先级（团队口径）：提升检索准确率，其次再做体验与工程化增强。
+- 当前响应已按阶段透出 `market_meta`、`planning_meta`、`query_meta`、`retrieval_meta`、`scoring_meta`，便于从 HTTP 响应定位 market/query/retrieval/scoring 哪一层影响最终推荐。
 
 ## 2. 当前搜索主链路（后端）
 
@@ -63,14 +64,14 @@
 - 已知限制：
   - 候选间“证据冲突”缺乏交叉验证；
   - 单条打分为主，未形成多文档联合推理；
-  - 返回层目前未透传完整分数细节到 API 响应。
+  - 返回层仅透出排序总分和阶段 meta，尚未形成完整多文档解释。
 
 ### 3.4 响应组装：`backend/src/recommendations/recommendations.service.ts`
 
-- 当前返回结构：`recommended_sources: [{ url, score }]`
+- 当前返回结构：`recommended_sources: [{ url, score, title?, provider?, sourceType?, publishedAt?, snippet?, debug_score? }]`，并可附带 `market_meta` / `planning_meta` / `query_meta` / `retrieval_meta` / `scoring_meta`
 - 现状注意：
-  - 当前实现中 `score` 固定写为 `0`，未透传真实排序分值；
-  - 对前端与调用方而言，可解释性和调试信息不足。
+  - `score` 透出服务端排序使用的真实 `totalScore`；
+  - 阶段 meta 已能辅助定位 market/query/retrieval/scoring 问题，但完整解释性仍需后续增强。
 
 ### 3.5 Recommendations 模块职责边界
 
@@ -88,7 +89,7 @@
 
 - 已支持两种输入模式：`market-id` 与 `custom market question`；
 - 可展示 loading / error / no-results / results 状态；
-- 推荐与 Query 预览的响应体可携带 `planning_meta`（LLM/规则来源、回退原因、仅 Debug 下的 `debug_detail`），控制台已做基础展示（与后端契约见 `api-contract-and-errors.md`）；
+- 推荐与 Query 预览的响应体可携带 `market_meta`、`planning_meta`、`query_meta`、`retrieval_meta`、`scoring_meta`（其中 `planning_meta` 含 LLM/规则来源、回退原因、仅 Debug 下的 `debug_detail`），控制台已做基础展示（与后端契约见 `api-contract-and-errors.md`）；
 - 当前前端职责明确：不做业务排序逻辑，仅负责输入、调用、展示。
 
 ## 5. 准确率提升的核心瓶颈（当前阶段）
@@ -96,7 +97,7 @@
 1. query 生成偏规则化，语义召回能力不稳定；
 2. 召回阶段缺少动态检索编排；
 3. 打分阶段缺少跨候选证据融合；
-4. 响应层调试信息不足，难做“准确率问题定位”。
+4. 响应层已有分阶段 meta，但缺少更完整的证据解释与跨候选归因。
 
 ## 6. 与 Agent 方案的边界建议（用于后续迭代）
 
