@@ -16,6 +16,8 @@ import { normalizeRequest } from './application/normalize-request'
 import { RetrievalService } from './retrieval/domain/retrieval.service'
 import { ScoringService } from './scoring.service'
 import {
+  type CandidateSource,
+  type RecommendedSource,
   type RecommendationRequest,
   type RecommendationResponse
 } from './types/recommendations'
@@ -43,10 +45,14 @@ export class RecommendationsService {
       retrievalResult.market,
       retrievalResult.candidates
     )
+    const includeDebugScore = this.settings.queryDebugEnabled
+    const staleFilteredCount = scoredCandidates.filter((candidate) => candidate.stale).length
     const recommended = scoredCandidates
       .filter((candidate) => !candidate.stale)
       .slice(0, normalizedRequest.max_results ?? this.settings.marketDefaultLimit)
-    const staleFilteredCount = scoredCandidates.filter((candidate) => candidate.stale).length
+    const recommendedSources = recommended.map((candidate) =>
+      toRecommendedSource(candidate, includeDebugScore)
+    )
     const retrievalMeta = {
       ...retrievalResult.retrievalMeta,
       total_candidates_after_scoring: recommended.length,
@@ -64,12 +70,44 @@ export class RecommendationsService {
     }))
 
     return {
-      recommended_sources: recommended.map((candidate) => ({
-        url: candidate.url,
-        score: 0
-      })),
+      recommended_sources: recommendedSources,
+      market_meta: retrievalResult.market.market_meta,
       planning_meta: retrievalResult.market.planning_meta,
-      retrieval_meta: retrievalMeta
+      query_meta: retrievalResult.market.query_meta,
+      retrieval_meta: retrievalMeta,
+      scoring_meta: {
+        scored_count: scoredCandidates.length,
+        returned_count: recommendedSources.length,
+        stale_filtered_count: staleFilteredCount,
+        llm_rerank_enabled: this.settings.llmRerankEnabled
+      }
     }
+  }
+}
+
+function roundScore (value: number | undefined): number {
+  return Number((value ?? 0).toFixed(4))
+}
+
+function toRecommendedSource (candidate: CandidateSource, includeDebug: boolean): RecommendedSource {
+  return {
+    url: candidate.url,
+    score: roundScore(candidate.totalScore),
+    title: candidate.title,
+    provider: candidate.provider,
+    source_type: candidate.sourceType,
+    rationale: candidate.rationale,
+    ...(includeDebug
+      ? {
+          debug_score: {
+            relevance_score: roundScore(candidate.relevanceScore),
+            freshness_score: roundScore(candidate.freshnessScore),
+            ai_score: roundScore(candidate.aiScore),
+            total_score: roundScore(candidate.totalScore),
+            stale: Boolean(candidate.stale),
+            stale_reason: candidate.staleReason
+          }
+        }
+      : {})
   }
 }
