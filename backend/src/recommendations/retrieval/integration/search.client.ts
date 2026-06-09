@@ -116,6 +116,8 @@ export class SearchClient {
     return {
       candidates: deduped,
       retrievalMeta: {
+        strategy: 'fixed_provider_mix',
+        candidate_limit: input.candidateLimit,
         query_count: input.queries.length,
         providers,
         total_candidates_before_scoring: deduped.length

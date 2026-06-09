@@ -16,6 +16,8 @@ describe('RetrievalService', () => {
           { title: 'A', url: 'https://a.com', sourceType: 'news', provider: 'google_news' }
         ],
         retrievalMeta: {
+          strategy: 'fixed_provider_mix',
+          candidate_limit: 5,
           query_count: 2,
           providers: [],
           total_candidates_before_scoring: 1
