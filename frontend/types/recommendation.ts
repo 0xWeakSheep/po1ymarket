@@ -16,10 +16,54 @@ export type QueryPlanningMetaWire = {
   debug_detail?: string
 };
 
+export type SourceTypeWire = "news" | "social" | "official";
+
+export type MarketMetaWire = {
+  input_type:
+    | "polymarket_market_id"
+    | "polymarket_market_slug"
+    | "polymarket_event_slug"
+    | "legacy_market_id"
+    | "market_question";
+  resolved_from_polymarket: boolean;
+  fallback_used?: boolean;
+};
+
+export type QueryMetaWire = {
+  query_count: number;
+  primary_query: string;
+  variants: string[];
+};
+
+export type RetrievalMetaWire = {
+  strategy: "fixed_provider_mix";
+  candidate_limit: number;
+  query_count: number;
+  providers: Array<{
+    provider: string;
+    query_count: number;
+    candidate_count: number;
+    failed_query_count: number;
+    failure_reasons?: string[];
+  }>;
+  total_candidates_before_scoring: number;
+  total_candidates_after_scoring?: number;
+  stale_filtered_count?: number;
+};
+
+export type ScoringMetaWire = {
+  scored_count: number;
+  returned_count: number;
+  stale_filtered_count: number;
+  llm_rerank_enabled: boolean;
+};
+
 /** Form → request body mapping uses snake_case on the wire (Nest). */
 export type RecommendationsQueryInput = {
   mode: QueryMode;
   marketId?: string;
+  marketSlug?: string;
+  eventSlug?: string;
   marketQuestion?: string;
 };
 
@@ -30,6 +74,8 @@ export type RecommendedSourceRow = {
   label: string;
   reason: string;
   score: number;
+  provider?: string;
+  sourceType?: SourceTypeWire;
 };
 
 export type RecommendationsRunState =
@@ -37,11 +83,34 @@ export type RecommendationsRunState =
       state: "success";
       results: RecommendedSourceRow[];
       planning_meta?: QueryPlanningMetaWire;
+      market_meta?: MarketMetaWire;
+      query_meta?: QueryMetaWire;
+      retrieval_meta?: RetrievalMetaWire;
+      scoring_meta?: ScoringMetaWire;
     }
-  | { state: "no-results"; results: []; planning_meta?: QueryPlanningMetaWire }
+  | {
+      state: "no-results";
+      results: [];
+      planning_meta?: QueryPlanningMetaWire;
+      market_meta?: MarketMetaWire;
+      query_meta?: QueryMetaWire;
+      retrieval_meta?: RetrievalMetaWire;
+      scoring_meta?: ScoringMetaWire;
+    }
   | { state: "error"; results: []; errorMessage: string };
 
 export type RecommendationApiJsonResponse = {
-  recommended_sources: Array<{ url: string; score: number }>;
+  recommended_sources: Array<{
+    url: string;
+    score: number;
+    title?: string;
+    provider?: string;
+    source_type?: SourceTypeWire;
+    rationale?: string;
+  }>;
+  market_meta?: MarketMetaWire;
   planning_meta?: QueryPlanningMetaWire;
+  query_meta?: QueryMetaWire;
+  retrieval_meta?: RetrievalMetaWire;
+  scoring_meta?: ScoringMetaWire;
 };

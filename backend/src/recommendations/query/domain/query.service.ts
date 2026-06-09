@@ -4,6 +4,7 @@ import { SETTINGS } from '../../../common/constants'
 import type { Settings } from '../../../config/settings'
 import type {
   MarketContext,
+  QueryMeta,
   QueryPlanningFallbackReason,
   QueryPlanningMeta,
   QueryPreviewResponse,
@@ -25,6 +26,14 @@ const DEFAULT_FALLBACK_MESSAGE: Record<QueryPlanningFallbackReason, string> = {
   llm_request_failed: 'Planner 请求失败，已使用规则生成检索词。',
   payload_parse_failed: 'Planner 返回非预期 JSON，已使用规则生成检索词。',
   queries_sanitized_insufficient: '解析后检索词过少，已使用规则生成检索词。'
+}
+
+function buildQueryMeta (searchQueries: string[]): QueryMeta {
+  return {
+    query_count: searchQueries.length,
+    primary_query: searchQueries[0] ?? '',
+    variants: searchQueries.slice(1)
+  }
 }
 
 @Injectable()
@@ -151,13 +160,16 @@ export class QueryService {
 
     const { searchQueries, planningMeta } =
       await this.planSearchQueries(queryMarketInput)
+    const queryMeta = buildQueryMeta(searchQueries)
 
     return {
       question: queryMarketInput.question,
       description: queryMarketInput.description,
       resolutionSource: queryMarketInput.resolutionSource,
       searchQueries,
-      planning_meta: planningMeta
+      planning_meta: planningMeta,
+      market_meta: queryMarketInput.market_meta,
+      query_meta: queryMeta
     }
   }
 
@@ -169,12 +181,16 @@ export class QueryService {
 
     return {
       marketId: queryMarketInput.marketId,
+      marketSlug: queryMarketInput.marketSlug,
+      eventSlug: queryMarketInput.eventSlug,
       question: queryMarketInput.question,
       description: queryMarketInput.description,
       resolutionSource: queryMarketInput.resolutionSource,
       endDate: queryMarketInput.endDate,
       searchQueries,
-      planning_meta: planningMeta
+      planning_meta: planningMeta,
+      market_meta: queryMarketInput.market_meta,
+      query_meta: buildQueryMeta(searchQueries)
     }
   }
 }

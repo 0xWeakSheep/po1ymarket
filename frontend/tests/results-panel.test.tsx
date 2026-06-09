@@ -9,7 +9,27 @@ describe("fetchRecommendations", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          recommended_sources: [{ url: "https://news.example.com/article", score: 0.91 }],
+          recommended_sources: [
+            {
+              url: "https://news.example.com/article",
+              score: 0.91,
+              title: "News article",
+              provider: "google_news",
+              source_type: "news",
+              rationale: "Directly relevant.",
+            },
+          ],
+          query_meta: {
+            query_count: 1,
+            primary_query: "btc 120k",
+            variants: [],
+          },
+          scoring_meta: {
+            scored_count: 1,
+            returned_count: 1,
+            stale_filtered_count: 0,
+            llm_rerank_enabled: false,
+          },
         }),
       }),
     );
@@ -28,14 +48,50 @@ describe("fetchRecommendations", () => {
     expect(result.state).toBe("success");
     if (result.state !== "success") throw new Error("expected success");
     expect(result.results[0]?.domain).toBe("news.example.com");
+    expect(result.results[0]?.label).toBe("News article");
+    expect(result.results[0]?.reason).toBe("Directly relevant.");
     expect(result.results[0]?.score).toBe(0.91);
+    expect(result.results[0]?.provider).toBe("google_news");
+    expect(result.results[0]?.sourceType).toBe("news");
+    expect(result.query_meta?.primary_query).toBe("btc 120k");
+    expect(result.scoring_meta?.returned_count).toBe(1);
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
       "http://127.0.0.1:3001/api/v1/recommendations",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ market_id: "540816" }),
+        body: JSON.stringify({ polymarket_market_id: "540816" }),
       }),
     );
+  });
+
+  it("falls back to host and default provider for blank source labels", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          recommended_sources: [
+            {
+              url: "https://news.example.com/article",
+              score: 0.5,
+              title: "   ",
+              provider: "   ",
+              rationale: "   ",
+            },
+          ],
+        }),
+      }),
+    );
+
+    const result = await fetchRecommendations(
+      { mode: "market-id", marketId: "540816" },
+      "http://127.0.0.1:3001",
+    );
+
+    expect(result.state).toBe("success");
+    if (result.state !== "success") throw new Error("expected success");
+    expect(result.results[0]?.label).toBe("news.example.com");
+    expect(result.results[0]?.reason).toBe("由 推荐接口 返回。");
   });
 
   it("when using default proxy prefix, 404 responses include setup guidance", async () => {

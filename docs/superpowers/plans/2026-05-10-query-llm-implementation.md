@@ -8,6 +8,8 @@
 
 **Tech Stack:** NestJS, TypeScript, Jest，Planner 使用 **`openai` Chat Completions**（与 DeepSeek 兼容）；候选人打分路径可仍用 **`/responses`**。涉及 `recommendations` / `query` / `retrieval` 模块。
 
+**2026-06-09 correction:** 本文是历史实现计划。当前代码中 Query Planning 与候选人打分都使用 OpenAI-compatible **`chat.completions.create` + `response_format: { type: 'json_object' }`**；下文任何 **`/responses`** 提法均为历史上下文，不应作为当前实现指引。
+
 **2026-05-11：** 本文档内嵌的 `QueryPlanPayload` 代码片段已过时；以 `backend/src/recommendations/types/recommendations.ts` 与 `query-planning.schema.ts`（Zod）为准（仅三键）。
 
 
@@ -184,6 +186,7 @@ export class QueryPlanningClient {
   async planQueries (input: { question: string, description?: string, resolutionSource?: string }): Promise<{ outputText: string } | null> {
     if (!this.enabled || !this.settings.openaiApiKey) return null
     // 调用 /responses，返回 output_text
+    // 2026-06-09 correction: historical sample only; current implementation uses chat.completions.create + response_format: { type: 'json_object' }.
     // 出错统一 return null，由 domain 层决策 fallback
     return null
   }
@@ -377,4 +380,3 @@ Expected:
 git add .
 git commit -m "feat(query): improve semantic query planning with robust fallback"
 ```
-

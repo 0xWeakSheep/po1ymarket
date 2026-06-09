@@ -4,13 +4,15 @@ import { QueryService } from '../../query/domain/query.service'
 import type {
   CandidateSource,
   MarketContext,
-  RecommendationRequest
+  RecommendationRequest,
+  RetrievalMeta
 } from '../../types/recommendations'
 import { CandidateRetrieverService } from './candidate-retriever.service'
 
 type RetrievalResult = {
   market: MarketContext
   candidates: CandidateSource[]
+  retrievalMeta: RetrievalMeta
 }
 
 @Injectable()
@@ -25,11 +27,11 @@ export class RetrievalService {
     candidateLimit?: number
   }): Promise<RetrievalResult> {
     const market = await this.queryService.resolveMarketContext(input.request)
-    const candidates = await this.candidateRetriever.retrieve({
+    const { candidates, retrievalMeta } = await this.candidateRetriever.retrieve({
       market,
       candidateLimit: input.candidateLimit
     })
 
-    return { market, candidates }
+    return { market, candidates, retrievalMeta }
   }
 }

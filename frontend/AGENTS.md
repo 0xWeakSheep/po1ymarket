@@ -16,7 +16,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | P0 | `../docs/README.md` | 文档总入口：契约、specs、检索 I/O 链到何处 |
 | P0 | `../docs/superpowers/api-contract-and-errors.md` | 改 API 客户端、类型、`planning_meta` 展示、错误处理时 |
 | P0 | `../docs/superpowers/README.md` | 改契约后需同步哪些迭代日志、分治规则 |
-| P1 | `../backend/src/recommendations/query/README.md` | Query 预览接口、`planning_meta` 字段语义；**§6.1** 含当前打分 / `recommended_sources[].score` 为占位等主链路事实 |
+| P1 | `../backend/src/recommendations/query/README.md` | Query 预览接口、`planning_meta` 字段语义；**§6.1** 含当前打分、真实 `recommended_sources[].score`、source 上下文与 Debug 下 `debug_score` 等主链路事实 |
 | P1 | `../backend/src/recommendations/retrieval/SEARCH-IO.md` | 若 UI 或类型假设「候选从哪来、有哪些字段」，与多源召回 I/O 对齐 |
 | P2 | `../docs/superpowers/search-current-state.md` | 大改搜索相关交互前了解后端现状基线 |
 | P2 | `../docs/superpowers/frontend-iteration-log.md` | 合入前按仓库规范追加前端迭代记录 |

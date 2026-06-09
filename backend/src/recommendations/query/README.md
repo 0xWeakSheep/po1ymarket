@@ -43,6 +43,9 @@
 
 ```json
 {
+  "polymarket_market_id": "optional-string",
+  "polymarket_market_slug": "optional-string",
+  "polymarket_event_slug": "optional-string",
   "market_id": "optional-string",
   "market_question": "optional-string",
   "market_description": "optional-string",
@@ -52,8 +55,9 @@
 
 约束：
 
-- `market_id` 和 `market_question` 至少提供一个
-- 若两者都缺失，返回 `400 Bad Request`
+- `market_question`、`polymarket_market_id`、`polymarket_market_slug`、`polymarket_event_slug`、legacy `market_id` 至少提供一个
+- `market_id` 仅作为 legacy alias 保留，语义等同于 `polymarket_market_id`
+- 若上述字段都缺失，返回 `400 Bad Request`
 
 成功响应（`QueryPreviewResponse`）：
 
@@ -67,6 +71,19 @@
     "BTC close above 120k",
     "BTC close above 120k official source"
   ],
+  "market_meta": {
+    "input_type": "market_question",
+    "resolved_from_polymarket": false,
+    "fallback_used": false
+  },
+  "query_meta": {
+    "query_count": 3,
+    "primary_query": "Will BTC close above 120k this month?",
+    "variants": [
+      "BTC close above 120k",
+      "BTC close above 120k official source"
+    ]
+  },
   "planning_meta": {
     "planner_configured": true,
     "query_source": "llm",
@@ -125,7 +142,7 @@
 
 ## 5. 与推荐主链路关系
 - `RecommendationsService` 通过 `QueryService.resolveMarketContext` 获取市场上下文与搜索查询词
-- **`POST /api/v1/recommendations` 响应体在 `recommended_sources` 之外附带 `planning_meta`（可选）**，与预览接口同形，便于前端展示「LLM / 规则」与回退原因
+- **`POST /api/v1/recommendations` 响应体在 `recommended_sources` 之外附带 `market_meta`、`planning_meta`、`query_meta`、`retrieval_meta`、`scoring_meta`（均可选）**，便于前端展示「LLM / 规则」与分阶段调试信息
 - `query` 模块接口可被前端/调试工具单独调用，不依赖完整推荐流程
 - **检索（多源 HTTP）入参 / 出参约定**：`backend/src/recommendations/retrieval/SEARCH-IO.md`
 
@@ -153,7 +170,7 @@
 
 **`POST /api/v1/recommendations` 响应注意点**
 
-- `recommended_sources` 里当前 **`score` 字段恒为 `0`**（占位），真实排序已由上述流程完成；调试可看服务端日志或后续若开放「调试字段」再透出。
+- `recommended_sources[].score` 透出服务端排序使用的 `totalScore`，并附带最小 source 上下文；Debug 模式下可附带 `debug_score`。
 - `planning_meta` 来自检索阶段解析的 `MarketContext`，与 query 预览接口同形。
 
 **演进路线图（非代码契约）**：`docs/superpowers/specs/2026-05-13-scoring-rerank-roadmap.md`（启发式增强、并发/batch rerank、stale 改造、authority 维度等）。

@@ -10,6 +10,14 @@ export type Settings = {
   polymarketGammaApi: string
   /** Same as Python `request_timeout_seconds` (httpx timeout). */
   requestTimeoutSeconds: number
+  /** Timeout for infra -> internal query-service HTTP calls. */
+  queryServiceTimeoutSeconds: number
+  queryServicePort: number
+  queryServiceHost: string
+  queryServiceBaseUrl: string
+  queryCacheTtlSeconds: number
+  mongoUri?: string
+  mongoDbName: string
   googleNewsBaseUrl: string
   redditSearchBaseUrl: string
   userAgent: string
@@ -41,10 +49,43 @@ function readTimeoutSeconds (): number {
   return 15
 }
 
+function readPositiveNumber (raw: string | undefined, fallback: number): number {
+  if (raw !== undefined && raw !== '') {
+    const parsed = Number(raw)
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed
+    }
+  }
+
+  return fallback
+}
+
 export function getSettings (): Settings {
+  const queryServicePort = readPositiveNumber(
+    process.env.PO1MARKET_QUERY_SERVICE_PORT,
+    3002
+  )
+  const queryServiceHost = process.env.PO1MARKET_QUERY_SERVICE_HOST?.trim() || '127.0.0.1'
+  const queryServiceBaseUrl =
+    process.env.PO1MARKET_QUERY_SERVICE_BASE_URL?.trim() ||
+    `http://${queryServiceHost}:${queryServicePort}`
+
   return {
     polymarketGammaApi: process.env.PO1MARKET_POLYMARKET_GAMMA_API ?? 'https://gamma-api.polymarket.com',
     requestTimeoutSeconds: readTimeoutSeconds(),
+    queryServiceTimeoutSeconds: readPositiveNumber(
+      process.env.PO1MARKET_QUERY_SERVICE_TIMEOUT_SECONDS,
+      45
+    ),
+    queryServicePort,
+    queryServiceHost,
+    queryServiceBaseUrl,
+    queryCacheTtlSeconds: readPositiveNumber(
+      process.env.PO1MARKET_QUERY_CACHE_TTL_SECONDS,
+      300
+    ),
+    mongoUri: process.env.PO1MARKET_MONGODB_URI?.trim() || undefined,
+    mongoDbName: process.env.PO1MARKET_MONGODB_DB_NAME?.trim() || 'po1market',
     googleNewsBaseUrl: process.env.PO1MARKET_GOOGLE_NEWS_BASE_URL ?? 'https://news.google.com/rss/search',
     redditSearchBaseUrl: process.env.PO1MARKET_REDDIT_SEARCH_BASE_URL ?? 'https://www.reddit.com/search.json',
     userAgent: process.env.PO1MARKET_USER_AGENT ?? 'po1market/0.1 (+https://github.com/0xWeakSheep/po1market)',

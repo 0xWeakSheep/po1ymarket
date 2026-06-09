@@ -25,10 +25,19 @@ export async function fetchRecommendations(
 ): Promise<RecommendationsRunState> {
   const body: Record<string, string> = {};
   if (input.mode === "market-id") {
-    if (!input.marketId?.trim()) {
-      return { state: "error", results: [], errorMessage: "请填写市场 ID。" };
+    const marketId = input.marketId?.trim();
+    const marketSlug = input.marketSlug?.trim();
+    const eventSlug = input.eventSlug?.trim();
+    if (!marketId && !marketSlug && !eventSlug) {
+      return {
+        state: "error",
+        results: [],
+        errorMessage: "请至少填写 Polymarket 市场 ID、market slug 或 event slug 之一。",
+      };
     }
-    body.market_id = input.marketId.trim();
+    if (marketId) body.polymarket_market_id = marketId;
+    if (marketSlug) body.polymarket_market_slug = marketSlug;
+    if (eventSlug) body.polymarket_event_slug = eventSlug;
   } else {
     if (!input.marketQuestion?.trim()) {
       return { state: "error", results: [], errorMessage: "请填写市场问题描述。" };
@@ -60,24 +69,33 @@ export async function fetchRecommendations(
     }
 
     const data = (await res.json()) as RecommendationApiJsonResponse;
-    const planningMeta = data.planning_meta;
+    const commonMeta = {
+      planning_meta: data.planning_meta,
+      market_meta: data.market_meta,
+      query_meta: data.query_meta,
+      retrieval_meta: data.retrieval_meta,
+      scoring_meta: data.scoring_meta,
+    };
     const sources = data.recommended_sources ?? [];
     if (!sources.length) {
-      return { state: "no-results", results: [], planning_meta: planningMeta };
+      return { state: "no-results", results: [], ...commonMeta };
     }
 
     const results: RecommendedSourceRow[] = sources.map((s) => {
       const host = publicHostname(s.url);
+      const providerLabel = s.provider?.trim() || "推荐接口";
       return {
         url: s.url,
         domain: host,
-        label: host,
-        reason: "由推荐接口返回。",
+        label: s.title?.trim() || host,
+        reason: s.rationale?.trim() || `由 ${providerLabel} 返回。`,
         score: typeof s.score === "number" ? s.score : 0,
+        provider: s.provider,
+        sourceType: s.source_type,
       };
     });
 
-    return { state: "success", results, planning_meta: planningMeta };
+    return { state: "success", results, ...commonMeta };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
     return {

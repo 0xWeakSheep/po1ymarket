@@ -1,6 +1,6 @@
 # Backend Search 技术迭代记录
 
-> 最后更新：2026-05-11  
+> 最后更新：2026-06-09  
 > 用途：记录后端搜索链路的每次技术迭代，沉淀“做了什么、为什么做、结果如何、下一步是什么”。
 
 ## 1. 与现有文档关系
@@ -68,7 +68,7 @@
 - **改动范围**：`backend/src/prompts/agent-prompt/*`、`backend/src/prompts/load-prompt-md.ts`、`backend/nest-cli.json`、`backend/src/recommendations/query/domain/query-planning.schema.ts`、`backend/src/recommendations/types/recommendations.ts`、`backend/README.md`、`backend/src/recommendations/query/README.md`、`docs/superpowers/**`、`docs/superpowers/plans/**`、`docs/superpowers/specs/**`、`task-board.md`、根 `README.md`
 - **实现要点**：System 文案用 `.md` 收集，构建拷贝入 `dist`；`queryPlanPayloadSchema` 使用 Zod `.strict()`，仅允许三键；移除此前「模块级 Prompts DI」复杂形态，调用方直接 `loadPromptMd`。
 - **验证方式**：`npm test`、`npm run build`
-- **结果**：文档、契约与实现一致；Planner 仍为 Chat Completions；打分仍为 `/responses`。
+- **结果**：当时文档、契约与实现一致；Planner 为 Chat Completions。2026-06-09 已更正：候选人打分也由 `OpenAiClient` 使用 **`chat.completions.create` + `response_format: { type: 'json_object' }`**，与 `backend/README.md`、query README 一致。
 - **风险与回滚**：运行时依赖 `dist/prompts/agent-prompt` 或 `cwd` 下源码路径；缺失文件会抛错——`load-prompt-md` 对 dist / src 双路径探测。
 - **下一步**：按样本继续迭代 `query-planning.system.md`；可考虑 e2e 覆盖 `/search/queries`。
 
@@ -80,6 +80,14 @@
 - **验证方式**：`npm run build`（确认 `dist/prompts/agent-prompt/*.md`）、`npm test`。
 - **结果**：源码、打包产物与文档同源。
 - **下一步**：批量更新文档前**先核对**上述三处代码事实源。
+
+### 2026-06-09 候选人打分传输路径文档纠偏
+
+- **背景**：历史迭代记录仍将 candidate scoring 描述为 OpenAI Responses API，已与当前 `OpenAiClient` 实现和文档摘要不一致。
+- **改动范围**：`docs/superpowers/search-iteration-log.md`、`docs/superpowers/frontend-iteration-log.md`。
+- **实现要点**：明确 Planner 与候选人打分当前均使用 `openai` SDK 的 **`chat.completions.create`**，并设置 **`response_format: { type: 'json_object' }`**。
+- **验证方式**：用 grep 检查历史 `/responses` 叙述是否已标注为历史并在近旁纠正。
+- **结果**：搜索与前端迭代日志对 candidate scoring transport 的描述与 `OpenAiClient`、`backend/README.md`、query README 对齐。
 
 ### 2026-05-10 Query 模块服务化拆分（代码 + 接口）
 

@@ -24,7 +24,7 @@
 3. 接口支持两种输入方式：
    - `market_id`
    - `market_question`
-4. 当前返回结果核心是 `recommended_sources`（链接列表）；其中 **`score` 字段当前为占位（恒为 0）**，排序已在服务端完成，agent 应按返回顺序理解优先级。
+4. 当前返回结果核心是 `recommended_sources`（链接列表）；其中 **`score` 是服务端真实排序分**，agent 可以同时参考 `score` 和返回顺序理解优先级。
 5. skill 的目标不是替代后端排序，而是让 agent 更好地调用、消费和继续利用这些结果。
 
 建议先读这些文件：

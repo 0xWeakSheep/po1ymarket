@@ -1,7 +1,33 @@
 export type SourceType = 'news' | 'social' | 'official'
 
+export type MarketInputType =
+  | 'polymarket_market_id'
+  | 'polymarket_market_slug'
+  | 'polymarket_event_slug'
+  | 'legacy_market_id'
+  | 'market_question'
+
+export type MarketMeta = {
+  input_type: MarketInputType
+  resolved_from_polymarket: boolean
+  fallback_used?: boolean
+}
+
+export type QueryMeta = {
+  query_count: number
+  primary_query: string
+  variants: string[]
+}
+
 export type RecommendationRequest = {
+  /** Legacy alias for Polymarket Gamma market id. Prefer `polymarket_market_id`. */
   market_id?: string
+  /** Explicit Polymarket Gamma market id (`GET /markets/{id}`). */
+  polymarket_market_id?: string
+  /** Explicit Polymarket market slug (`GET /markets/slug/{slug}`). */
+  polymarket_market_slug?: string
+  /** Explicit Polymarket event slug (`GET /events/slug/{slug}`). */
+  polymarket_event_slug?: string
   market_question?: string
   market_description?: string
   resolution_source?: string
@@ -32,12 +58,16 @@ export type QueryPlanningMeta = {
 
 export type MarketContext = {
   marketId?: string
+  marketSlug?: string
+  eventSlug?: string
   question: string
   description?: string
   resolutionSource?: string
   endDate?: Date
   searchQueries: string[]
   planning_meta?: QueryPlanningMeta
+  market_meta?: MarketMeta
+  query_meta?: QueryMeta
 }
 
 export type CandidateSource = {
@@ -56,14 +86,57 @@ export type CandidateSource = {
   rationale?: string
 }
 
-export type RecommendedLink = {
+export type RetrievalProviderDebug = {
+  provider: string
+  query_count: number
+  candidate_count: number
+  failed_query_count: number
+  failure_reasons?: string[]
+}
+
+export type RetrievalMeta = {
+  strategy: 'fixed_provider_mix'
+  candidate_limit: number
+  query_count: number
+  providers: RetrievalProviderDebug[]
+  total_candidates_before_scoring: number
+  total_candidates_after_scoring?: number
+  stale_filtered_count?: number
+}
+
+export type CandidateScoreDebug = {
+  relevance_score: number
+  freshness_score: number
+  ai_score: number
+  total_score: number
+  stale: boolean
+  stale_reason?: string
+}
+
+export type RecommendedSource = {
   url: string
   score: number
+  title?: string
+  provider?: string
+  source_type?: SourceType
+  rationale?: string
+  debug_score?: CandidateScoreDebug
+}
+
+export type ScoringMeta = {
+  scored_count: number
+  returned_count: number
+  stale_filtered_count: number
+  llm_rerank_enabled: boolean
 }
 
 export type RecommendationResponse = {
-  recommended_sources: RecommendedLink[]
+  recommended_sources: RecommendedSource[]
+  market_meta?: MarketMeta
   planning_meta?: QueryPlanningMeta
+  query_meta?: QueryMeta
+  retrieval_meta?: RetrievalMeta
+  scoring_meta?: ScoringMeta
 }
 
 export type QueryPreviewResponse = {
@@ -72,6 +145,8 @@ export type QueryPreviewResponse = {
   resolutionSource?: string
   searchQueries: string[]
   planning_meta?: QueryPlanningMeta
+  market_meta?: MarketMeta
+  query_meta?: QueryMeta
 }
 
 export type QueryPlanPayload = {
