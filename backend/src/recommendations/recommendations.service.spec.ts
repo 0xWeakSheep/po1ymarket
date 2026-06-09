@@ -94,6 +94,8 @@ describe('RecommendationsService', () => {
     ])
     expect(result.market_meta?.input_type).toBe('market_question')
     expect(result.query_meta?.primary_query).toBe('btc 120k')
+    expect(result.retrieval_meta?.total_candidates_after_scoring).toBe(2)
+    expect(result.retrieval_meta?.stale_filtered_count).toBe(1)
     expect(result.scoring_meta).toEqual({
       scored_count: 2,
       returned_count: 1,

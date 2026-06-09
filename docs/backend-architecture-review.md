@@ -4,6 +4,8 @@ Date: 2026-05-15
 Audience: Backend developers
 Scope: Entire backend (NestJS), with focus on recommendations pipeline
 
+> 2026-06-09 note: this assessment predates the agent-ready response upgrade. `recommended_sources[].score` now exposes the real server ranking score, and responses include stage-level metadata for market/query/retrieval/scoring diagnostics. Historical mentions of placeholder scores below describe the pre-upgrade baseline.
+
 ## 1) Executive summary
 
 The backend is a focused NestJS service centered on the recommendations pipeline, with clear module boundaries in the query, retrieval, and scoring layers. The code is readable and already has a three-layer separation (api/domain/integration) inside the query module. However, the system still has several maintainability and extensibility risks: error handling is inconsistent across integrations, external calls are tightly coupled to concrete providers, and responses do not fully expose scoring or diagnostics needed for future evolution. The largest architectural improvement opportunity is to formalize module boundaries and contracts across the whole recommendations pipeline, standardize provider interfaces, and improve observability.
@@ -25,7 +27,7 @@ The backend is a focused NestJS service centered on the recommendations pipeline
 2. Query planning (QueryService; LLM first with rules fallback)
 3. Candidate retrieval (SearchClient; Google News + Reddit + official)
 4. Scoring (heuristic + optional LLM)
-5. Filter stale and respond (only url + score placeholder)
+5. Filter stale and respond (`recommended_sources` with real score and source context; stage-level diagnostics are exposed via response meta)
 
 ### 2.3 Configuration
 
@@ -49,7 +51,7 @@ The backend is a focused NestJS service centered on the recommendations pipeline
   - PolymarketClient throws structured exceptions.
   - SearchClient silently returns empty results on errors.
   - LLM client returns null on exceptions with no reason surfaced to upstream.
-- Response schema hides scoring details (score is always 0), which blocks debugging and makes future changes hard to validate.
+- Historical baseline: the response schema used to hide scoring details with a placeholder score. Current responses expose the real score and stage-level diagnostics; deeper scoring/rerank explanations can still evolve.
 - Lack of shared interfaces or ports for external providers; SearchClient hardcodes Google News and Reddit.
 
 ## 4) Extensibility assessment

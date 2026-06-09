@@ -55,7 +55,7 @@ export class RecommendationsService {
     )
     const retrievalMeta = {
       ...retrievalResult.retrievalMeta,
-      total_candidates_after_scoring: recommended.length,
+      total_candidates_after_scoring: scoredCandidates.length,
       stale_filtered_count: staleFilteredCount
     }
 
