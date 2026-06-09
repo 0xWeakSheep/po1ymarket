@@ -28,6 +28,11 @@ describe('QueryMarketProvider', () => {
     expect(polymarketClient.fetchMarketBySlug).not.toHaveBeenCalled()
     expect(polymarketClient.fetchEventBySlug).not.toHaveBeenCalled()
     expect(result.marketId).toBe('540816')
+    expect(result.market_meta).toEqual({
+      input_type: 'polymarket_market_id',
+      resolved_from_polymarket: true,
+      fallback_used: false
+    })
   })
 
   it('uses market slug when provided', async () => {
@@ -77,6 +82,11 @@ describe('QueryMarketProvider', () => {
 
     expect(polymarketClient.fetchMarketById).toHaveBeenCalledWith('legacy-id')
     expect(result.marketId).toBe('legacy-id')
+    expect(result.market_meta).toEqual({
+      input_type: 'legacy_market_id',
+      resolved_from_polymarket: true,
+      fallback_used: false
+    })
   })
 
   it('uses plain market_question when no polymarket identifier is provided', async () => {
@@ -98,5 +108,10 @@ describe('QueryMarketProvider', () => {
     expect(polymarketClient.fetchEventBySlug).not.toHaveBeenCalled()
     expect(result.question).toBe('Will Trump tweet today?')
     expect(result.description).toBe('custom prompt')
+    expect(result.market_meta).toEqual({
+      input_type: 'market_question',
+      resolved_from_polymarket: false,
+      fallback_used: false
+    })
   })
 })
