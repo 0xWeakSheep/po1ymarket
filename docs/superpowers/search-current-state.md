@@ -1,6 +1,6 @@
 # Search 现状基线文档（持续更新）
 
-> 最后更新：2026-05-11（Query Planner：Markdown 提示词 + Zod strict；与 task-board / search-iteration-log 同步）  
+> 最后更新：2026-06-09（推荐响应：真实 score + market/query/retrieval/scoring 分阶段 meta；与 task-board / search-iteration-log 同步）  
 > 维护目标：作为“搜索能力演进”的单一事实源（Single Source of Truth），后续每次改动都在此文档增量更新。
 
 关联迭代记录：`docs/superpowers/search-iteration-log.md`
@@ -68,7 +68,7 @@
 
 ### 3.4 响应组装：`backend/src/recommendations/recommendations.service.ts`
 
-- 当前返回结构：`recommended_sources: [{ url, score, title?, provider?, sourceType?, publishedAt?, snippet?, debug_score? }]`，并可附带 `market_meta` / `planning_meta` / `query_meta` / `retrieval_meta` / `scoring_meta`
+- 当前返回结构：`recommended_sources: [{ url, score, title?, provider?, source_type?, rationale?, debug_score? }]`，并可附带 `market_meta` / `planning_meta` / `query_meta` / `retrieval_meta` / `scoring_meta`
 - 现状注意：
   - `score` 透出服务端排序使用的真实 `totalScore`；
   - 阶段 meta 已能辅助定位 market/query/retrieval/scoring 问题，但完整解释性仍需后续增强。
@@ -89,7 +89,8 @@
 
 - 已支持两种输入模式：`market-id` 与 `custom market question`；
 - 可展示 loading / error / no-results / results 状态；
-- 推荐与 Query 预览的响应体可携带 `market_meta`、`planning_meta`、`query_meta`、`retrieval_meta`、`scoring_meta`（其中 `planning_meta` 含 LLM/规则来源、回退原因、仅 Debug 下的 `debug_detail`），控制台已做基础展示（与后端契约见 `api-contract-and-errors.md`）；
+- 推荐响应体可携带 `market_meta`、`planning_meta`、`query_meta`、`retrieval_meta`、`scoring_meta`；
+- Query 预览响应体仅携带 `market_meta`、`planning_meta`、`query_meta`。其中 `planning_meta` 含 LLM/规则来源、回退原因、仅 Debug 下的 `debug_detail`，控制台已做基础展示（与后端契约见 `api-contract-and-errors.md`）；
 - 当前前端职责明确：不做业务排序逻辑，仅负责输入、调用、展示。
 
 ## 5. 准确率提升的核心瓶颈（当前阶段）
@@ -152,14 +153,20 @@
 
 - Query 层新增 `query-planning.schema` 与 `query-planning.spec`，实现 JSON 解析与 query sanitize。
 - QueryService 升级为异步 Planner 路径：接入 `QueryPlanningClient`，异常回退 `query-builder`。
-- 早期文档曾误记为 OpenAI **`/responses`**；Planner 实际为 **Chat Completions**（与代码一致）。
+- 早期文档曾误记 Planner 为 OpenAI Responses API；Planner 实际为 **Chat Completions**（与代码一致）。
 
 ### 2026-05-11（续）
 
 - 将 Planner / 候选人打分的 **system 提示词**置于 `backend/src/prompts/agent-prompt/*.md`，由 `load-prompt-md.ts` 读取；`nest-cli.json` 将 `prompts/agent-prompt/*.md` 在构建期拷入 `dist`（**若改目录名须同步改 `PROMPT_MARKDOWN_SUBDIR` 与 assets**）。
 - Planner 输出校验改为 **Zod**（`.strict()`），契约收窄为 **`primary_query` / `variants` / `confidence` 三键**；`payload_parse_failed` 与 Debug 下的 `debug_detail` 可与 Zod 错误对照。
-- 明确：候选人打分仍为 `OpenAiClient` → **`/responses`**，与 Query Planner 分层独立。
+- 明确：候选人打分由 `OpenAiClient` 执行，现同样使用 **`chat.completions.create` + `response_format: { type: 'json_object' }`**，与 `backend/README.md`、query README 的 SDK 路径说明一致。
 
 ### 2026-05-11（路径）
 
 - 文档曾误写 `prompts/md/`；运行时与 **`prompts/agent-prompt/`** 对齐（见 `load-prompt-md`、`nest-cli` assets）。
+
+### 2026-06-09
+
+- 推荐响应从占位 `score: 0` 升级为真实排序分，`recommended_sources[]` 与 `RecommendedSource` 类型对齐：`url`、`score`、可选 `title` / `provider` / `source_type` / `rationale` / `debug_score`。
+- 推荐响应新增/同步 `market_meta`、`planning_meta`、`query_meta`、`retrieval_meta`、`scoring_meta` 分阶段诊断。
+- Query 预览响应保持 `market_meta`、`planning_meta`、`query_meta` 三类 meta。

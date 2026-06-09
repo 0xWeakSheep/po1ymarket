@@ -103,6 +103,16 @@ gatherCandidates({
 |------|------|------|
 | `strategy` | `'fixed_provider_mix'` | 当前固定策略：每条 query 搜 Google News + Reddit，官方来源单独注入 |
 | `candidate_limit` | number | 本轮召回候选池上限 |
+| `query_count` | number | 本轮输入 query 数量 |
+| `providers` | `RetrievalProviderDebug[]` | 各 provider 的召回与失败摘要 |
+| `providers[].provider` | string | provider 标识，如 `google_news`、`reddit`、`polymarket` |
+| `providers[].query_count` | number | 该 provider 实际处理的 query 数量 |
+| `providers[].candidate_count` | number | 该 provider 贡献的候选数量 |
+| `providers[].failed_query_count` | number | 该 provider 失败的 query 数量 |
+| `providers[].failure_reasons` | string[]? | 失败原因摘要，当前最多保留 5 个去重原因 |
+| `total_candidates_before_scoring` | number | 去重与候选池截断后、进入 scoring 前的候选数量 |
+| `total_candidates_after_scoring` | number? | scoring 后、过滤 stale 前的候选数量；由推荐编排层补充 |
+| `stale_filtered_count` | number? | scoring 后被过滤的 stale 候选数量；由推荐编排层补充 |
 
 ### 4.3 当前内置来源与 `provider` / `sourceType`
 
