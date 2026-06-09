@@ -13,15 +13,45 @@ describe('App (e2e)', () => {
       .useValue({
         recommend: async () => ({
           recommended_sources: [
-            { url: 'https://example.com/a', score: 0.0 },
-            { url: 'https://example.com/b', score: 0.0 }
+            {
+              url: 'https://example.com/a',
+              score: 0.82,
+              title: 'Example A',
+              provider: 'google_news',
+              source_type: 'news'
+            },
+            {
+              url: 'https://example.com/b',
+              score: 0.71,
+              title: 'Example B',
+              provider: 'reddit',
+              source_type: 'social'
+            }
           ],
+          market_meta: {
+            input_type: 'market_question',
+            resolved_from_polymarket: false,
+            fallback_used: false
+          },
+          query_meta: {
+            query_count: 2,
+            primary_query: 'Will Trump tweet today?',
+            variants: ['Trump tweet today official source']
+          },
           retrieval_meta: {
+            strategy: 'fixed_provider_mix',
+            candidate_limit: 12,
             query_count: 2,
             providers: [],
             total_candidates_before_scoring: 2,
             total_candidates_after_scoring: 2,
             stale_filtered_count: 0
+          },
+          scoring_meta: {
+            scored_count: 2,
+            returned_count: 2,
+            stale_filtered_count: 0,
+            llm_rerank_enabled: false
           }
         })
       })
@@ -37,15 +67,45 @@ describe('App (e2e)', () => {
 
     expect(response.body).toEqual({
       recommended_sources: [
-        { url: 'https://example.com/a', score: 0.0 },
-        { url: 'https://example.com/b', score: 0.0 }
+        {
+          url: 'https://example.com/a',
+          score: 0.82,
+          title: 'Example A',
+          provider: 'google_news',
+          source_type: 'news'
+        },
+        {
+          url: 'https://example.com/b',
+          score: 0.71,
+          title: 'Example B',
+          provider: 'reddit',
+          source_type: 'social'
+        }
       ],
+      market_meta: {
+        input_type: 'market_question',
+        resolved_from_polymarket: false,
+        fallback_used: false
+      },
+      query_meta: {
+        query_count: 2,
+        primary_query: 'Will Trump tweet today?',
+        variants: ['Trump tweet today official source']
+      },
       retrieval_meta: {
+        strategy: 'fixed_provider_mix',
+        candidate_limit: 12,
         query_count: 2,
         providers: [],
         total_candidates_before_scoring: 2,
         total_candidates_after_scoring: 2,
         stale_filtered_count: 0
+      },
+      scoring_meta: {
+        scored_count: 2,
+        returned_count: 2,
+        stale_filtered_count: 0,
+        llm_rerank_enabled: false
       }
     })
 
