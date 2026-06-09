@@ -59,6 +59,41 @@ describe('QueryMarketProvider', () => {
     expect(polymarketClient.fetchMarketBySlug).toHaveBeenCalledWith('fed-decision-in-october-bps')
     expect(result.marketSlug).toBe('fed-decision-in-october-bps')
     expect(result.eventSlug).toBe('fed-decision-in-october')
+    expect(result.market_meta).toEqual({
+      input_type: 'polymarket_market_slug',
+      resolved_from_polymarket: true,
+      fallback_used: false
+    })
+  })
+
+  it('uses event slug when provided', async () => {
+    const polymarketClient = {
+      fetchMarketById: jest.fn(),
+      fetchMarketBySlug: jest.fn(),
+      fetchEventBySlug: jest.fn().mockResolvedValue({
+        marketId: 'm2',
+        marketSlug: 'fed-decision-in-october-bps',
+        eventSlug: 'fed-decision-in-october',
+        question: 'Will the Fed cut by 25 bps in October?',
+        description: 'from event slug',
+        resolutionSource: 'https://example.com/event',
+        endDate: undefined,
+        searchQueries: []
+      })
+    }
+
+    const provider = new QueryMarketProvider(polymarketClient as any)
+    const result = await provider.resolveQueryMarketInput({
+      polymarket_event_slug: 'fed-decision-in-october'
+    })
+
+    expect(polymarketClient.fetchEventBySlug).toHaveBeenCalledWith('fed-decision-in-october')
+    expect(result.eventSlug).toBe('fed-decision-in-october')
+    expect(result.market_meta).toEqual({
+      input_type: 'polymarket_event_slug',
+      resolved_from_polymarket: true,
+      fallback_used: false
+    })
   })
 
   it('falls back to legacy market_id alias when explicit fields are absent', async () => {
