@@ -90,10 +90,17 @@ describe('QueryService', () => {
     const queryMarketProvider = {
       resolveQueryMarketInput: jest.fn().mockResolvedValue({
         marketId: 'm2',
+        marketSlug: 'eth-reach-10k',
+        eventSlug: 'eth-price-targets',
         question: 'Will ETH reach 10k?',
         description: 'ETH target market',
         resolutionSource: 'https://example.com/source',
-        endDate: new Date('2026-08-01T00:00:00.000Z')
+        endDate: new Date('2026-08-01T00:00:00.000Z'),
+        market_meta: {
+          input_type: 'legacy_market_id',
+          resolved_from_polymarket: true,
+          fallback_used: false
+        }
       })
     }
 
@@ -107,8 +114,20 @@ describe('QueryService', () => {
     })
 
     expect(marketContext.marketId).toBe('m2')
+    expect(marketContext.marketSlug).toBe('eth-reach-10k')
+    expect(marketContext.eventSlug).toBe('eth-price-targets')
     expect(marketContext.question).toBe('Will ETH reach 10k?')
     expect(marketContext.searchQueries.length).toBeGreaterThan(0)
+    expect(marketContext.market_meta).toEqual({
+      input_type: 'legacy_market_id',
+      resolved_from_polymarket: true,
+      fallback_used: false
+    })
+    expect(marketContext.query_meta).toEqual({
+      query_count: marketContext.searchQueries.length,
+      primary_query: marketContext.searchQueries[0],
+      variants: marketContext.searchQueries.slice(1)
+    })
   })
 
   it('buildQueries 会追加 official source 查询词', async () => {
